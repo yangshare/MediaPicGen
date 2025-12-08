@@ -1,0 +1,57 @@
+name: Build and Release Develop
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build Application
+        # electron-builder 会根据当前系统（windows-latest）打包 win 版本
+        # 默认输出目录在 package.json 中配置为 "release"
+        run: pnpm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Short SHA
+        id: slug
+        shell: bash
+        run: echo "sha8=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # 使用 dev-{commit_hash} 作为 tag
+          tag_name: dev-${{ steps.slug.outputs.sha8 }}
+          name: Development Build ${{ steps.slug.outputs.sha8 }}
+          # 上传 release 目录下的 exe 文件
+          files: |
+            release/*.exe
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
