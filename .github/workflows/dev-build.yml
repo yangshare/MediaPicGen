@@ -3,7 +3,8 @@ name: Build and Release Develop
 on:
   push:
     branches:
-      - develop
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
