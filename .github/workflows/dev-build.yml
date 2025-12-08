@@ -31,9 +31,23 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Set Version
+        id: version
+        shell: bash
+        run: |
+          # 获取 package.json 中的版本号
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          # 组合版本号: base_version.run_number (e.g. 1.0.0.45)
+          # 注意：Windows exe 版本号通常为 x.x.x.x 格式
+          NEW_VERSION="${BASE_VERSION}.${{ github.run_number }}"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # 更新 package.json 版本号，确保 electron-builder 打包时使用新版本
+          npm version $NEW_VERSION --no-git-tag-version
+
       - name: Build Application
-        # electron-builder 会根据当前系统（windows-latest）打包 win 版本
-        # 默认输出目录在 package.json 中配置为 "release"
+        # electron-builder 会读取 package.json 中的新版本号
         run: pnpm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,10 +60,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          # 使用 dev-{commit_hash} 作为 tag
-          tag_name: dev-${{ steps.slug.outputs.sha8 }}
-          name: Development Build ${{ steps.slug.outputs.sha8 }}
-          # 上传 release 目录下的 exe 文件
+          # 使用 v1.0.0.xx 格式作为 tag
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Development Build v${{ steps.version.outputs.version }} (${{ steps.slug.outputs.sha8 }})
           files: |
             release/*.exe
           draft: false
