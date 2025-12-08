@@ -19,6 +19,7 @@
 *   **文字属性调整**：实时调整文字的字体、大小、颜色、位置等属性。
 *   **批量处理**：支持一次性导入多张图片，将设计好的文字模板自动应用到所有图片上。
 *   **一键导出**：支持单张快速导出或批量打包下载 ZIP。
+*   **🚀 自动更新**：应用启动时自动检测 GitHub Release 新版本，支持增量下载与自动安装，时刻保持最新体验。
 
 ![图片编辑器](doc/图片编辑器.png)
 
@@ -76,6 +77,22 @@ pnpm run compile
 # 确保已安装 electron-packager
 pnpm exec electron-packager . MediaPicGen --platform=win32 --arch=x64 --out=release-packager --overwrite
 ```
+
+### 🔄 自动发布与更新
+
+本项目集成了 GitHub Actions 与 electron-updater 实现自动化发布与更新流程。
+
+**如何发布新版本：**
+
+1.  **提交代码**：确保本地代码已提交并推送到 GitHub。
+2.  **打标签 (Tag)**：创建一个以 `v` 开头的标签（如 `v1.0.1`）。
+    ```bash
+    git tag v1.0.1
+    git push origin v1.0.1
+    ```
+3.  **自动构建**：GitHub Actions 会自动触发构建流程，打包 Windows 安装包 (`.exe`) 并生成更新配置文件 (`latest.yml`)。
+4.  **发布 Release**：构建完成后，会自动在 GitHub Releases 页面发布一个 Pre-release 版本。
+5.  **用户更新**：用户打开旧版本应用时，会自动检测到新版本并提示更新。
 
 ## 📂 项目结构
 
