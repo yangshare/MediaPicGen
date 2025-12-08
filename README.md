@@ -1,4 +1,4 @@
-# AI 文字生成工具 (AI Text Gen Tool)
+# AI 图文生成工具 (AI Text2Image Gen Tool)
 
 这是一个基于 Electron、React 和 Fabric.js 开发的桌面应用程序，依托z-image开源生图模型，旨在提供便捷的图片文字编辑及批量处理功能。
 
