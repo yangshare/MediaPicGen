@@ -62,7 +62,7 @@ npm run dev
 
 1. 双击运行 `build.bat`。
 2. 脚本会自动清理旧文件、编译代码并打包应用。
-3. 打包完成后，可执行文件位于 `release-packager/MultiT2I-win32-x64/MultiT2I.exe`。
+3. 打包完成后，可执行文件位于 `release-packager/MediaPicGen-win32-x64/MediaPicGen.exe`。
 
 #### 手动打包
 
@@ -74,7 +74,7 @@ pnpm run compile
 
 # 2. 执行打包
 # 确保已安装 electron-packager
-pnpm exec electron-packager . MultiT2I --platform=win32 --arch=x64 --out=release-packager --overwrite
+pnpm exec electron-packager . MediaPicGen --platform=win32 --arch=x64 --out=release-packager --overwrite
 ```
 
 ## 📂 项目结构

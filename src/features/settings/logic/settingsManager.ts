@@ -1,6 +1,6 @@
 import { AppSettings } from '../types';
 
-const SETTINGS_STORAGE_KEY = 'multit2i_settings';
+const SETTINGS_STORAGE_KEY = 'MediaPicGen_settings';
 
 export const SettingsManager = {
   saveSettings: (settings: AppSettings): void => {
