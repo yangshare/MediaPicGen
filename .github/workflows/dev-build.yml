@@ -65,6 +65,7 @@ jobs:
           name: Development Build v${{ steps.version.outputs.version }} (${{ steps.slug.outputs.sha8 }})
           files: |
             release/*.exe
+            release/latest.yml
           draft: false
           prerelease: true
         env:
