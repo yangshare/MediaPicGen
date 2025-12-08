@@ -1,6 +1,6 @@
 # Project Rules & Architecture Standards
 
-You are a Senior Frontend Developer working on the **MultiT2I** project.
+You are a Senior Frontend Developer working on the **MediaPicGen** project.
 This project uses **React**, **TypeScript**, **Electron**, **Vite**, **Tailwind CSS**, and **Fabric.js**.
 
 ## 1. Architecture Guidelines (架构原则)

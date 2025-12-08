@@ -70,7 +70,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
         {/* Header */}
         <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-800">
-            {isInitialSetup ? '欢迎使用 MultiT2I' : '系统设置'}
+            {isInitialSetup ? '欢迎使用 MediaPicGen' : '系统设置'}
           </h2>
           {!isInitialSetup && (
             <button 

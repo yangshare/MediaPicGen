@@ -28,7 +28,7 @@ function App() {
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-100">
       {/* Navigation Bar */}
       <nav className="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-6 z-50 shadow-sm shrink-0">
-        <div className="font-bold text-xl text-slate-800 mr-4">MultiT2I</div>
+        <div className="font-bold text-xl text-slate-800 mr-4">MediaPicGen</div>
         
         <button
           onClick={() => setCurrentView('topic')}

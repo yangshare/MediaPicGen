@@ -8,7 +8,7 @@ export interface HistoryItem {
   results: TopicResult[];
 }
 
-const STORAGE_KEY = 'multit2i_topic_history';
+const STORAGE_KEY = 'MediaPicGen_topic_history';
 
 export const useTopicHistory = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);

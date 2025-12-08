@@ -46,8 +46,8 @@
     ]
   },
   "build": {
-    "appId": "com.multit2i.app",
-    "productName": "MultiT2I",
+    "appId": "com.MediaPicGen.app",
+    "productName": "MediaPicGen",
     "directories": {
       "output": "release"
     },

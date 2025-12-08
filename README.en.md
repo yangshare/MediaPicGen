@@ -1,4 +1,4 @@
-# MultiT2I (AI Text Gen Tool)
+# MediaPicGen (AI Text Gen Tool)
 
 This is a desktop application developed with Electron, React, and Fabric.js, designed to provide convenient image text editing and batch processing capabilities.
 
@@ -51,7 +51,7 @@ A `build.bat` script is provided in the project root. Simply double-click it to 
 
 1.  Double-click `build.bat`.
 2.  The script will automatically clean old files, compile code, and package the application.
-3.  Upon completion, the executable is located at `release-packager/MultiT2I-win32-x64/MultiT2I.exe`.
+3.  Upon completion, the executable is located at `release-packager/MediaPicGen-win32-x64/MediaPicGen.exe`.
 
 #### Manual Build
 
@@ -63,7 +63,7 @@ pnpm run compile
 
 # 2. Package application
 # Ensure electron-packager is installed
-pnpm exec electron-packager . MultiT2I --platform=win32 --arch=x64 --out=release-packager --overwrite
+pnpm exec electron-packager . MediaPicGen --platform=win32 --arch=x64 --out=release-packager --overwrite
 ```
 
 ## 📂 Project Structure

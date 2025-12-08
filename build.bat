@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo =======================================================
-echo           MultiT2I One-Click Build Script
+echo           MediaPicGen One-Click Build Script
 echo =======================================================
 
 :: 1. Cleanup
@@ -40,7 +40,7 @@ copy /Y package.json build-stage\package.json >nul
 :: 4. Package
 echo [4/5] Packaging application (using electron-packager)...
 set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
-call pnpm exec electron-packager build-stage MultiT2I --platform=win32 --arch=x64 --out=release-packager --overwrite
+call pnpm exec electron-packager build-stage MediaPicGen --platform=win32 --arch=x64 --out=release-packager --overwrite
 if %errorlevel% neq 0 (
     echo [ERROR] Packaging failed!
     pause
@@ -56,9 +56,9 @@ echo =======================================================
 echo [SUCCESS] Build completed successfully!
 echo.
 echo Output location:
-echo   %~dp0release-packager\MultiT2I-win32-x64\MultiT2I.exe
+echo   %~dp0release-packager\MediaPicGen-win32-x64\MediaPicGen.exe
 echo.
-echo You can now zip the folder 'release-packager\MultiT2I-win32-x64'
+echo You can now zip the folder 'release-packager\MediaPicGen-win32-x64'
 echo and share it with your friends.
 echo =======================================================
 pause
