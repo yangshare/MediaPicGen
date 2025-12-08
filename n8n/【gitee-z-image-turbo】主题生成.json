@@ -1,0 +1,333 @@
+{
+  "name": "【gitee-z-image-turbo】主题生成",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "78871f55-928a-42e5-bac4-0e58470443ce",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -480,
+        224
+      ],
+      "id": "b5d012e5-ec2f-4c6d-92ee-572031f5ea15",
+      "name": "Webhook",
+      "webhookId": "78871f55-928a-42e5-bac4-0e58470443ce"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 获取 LLM 输出的文本\nconst text = $input.first().json.output || $input.first().json.text;\n\nif (!text) return [];\n\n// 按 <page> 分割\nconst pages = text.split('<page>')\n    .map(p => p.trim())\n    .filter(p => p.length > 0);\n\nconst result = pages.map((pageText, index) => {\n    const lines = pageText.split('\\n');\n    let type = 'content';\n    let content = pageText; // 默认保留全部，防止解析失败变空\n\n    // 提取类型 [封面], [内容] 等\n    // 优化正则：只匹配行首的标签，避免误伤正文里的方括号\n    const typeMatch = lines[0].match(/^\\[(.*?)\\]/);\n    \n    if (typeMatch) {\n        const typeStr = typeMatch[1];\n        if (typeStr.includes('封面')) type = 'cover';\n        else if (typeStr.includes('总结')) type = 'summary';\n        \n        // --- 核心修复逻辑开始 ---\n        \n        // 尝试 1: 标准格式（内容在标签的下一行）\n        let extractedContent = lines.slice(1).join('\\n').trim();\n        \n        // 尝试 2: 紧凑格式（内容在标签同一行，如 \"[封面] 标题：...\"）\n        if (!extractedContent) {\n            // 将标签替换为空，获取该行剩余文本\n            const inlineContent = lines[0].replace(typeMatch[0], '').trim();\n            if (inlineContent) {\n                extractedContent = inlineContent;\n            }\n        }\n        \n        // 只有在成功提取到非空内容时，才覆盖默认的 content\n        // 这样如果提取结果为空，至少还会保留原始文本作为兜底\n        if (extractedContent) {\n            content = extractedContent;\n        }\n        // --- 核心修复逻辑结束 ---\n    }\n\n    // 最后的兜底：如果内容依然为空（极少数情况），给一个基于类型的默认值，防止绘图节点报错\n    if (!content) {\n        content = type === 'cover' ? 'A creative cover design suitable for social media' : 'Lifestyle photography';\n    }\n\n    return {\n        json: {\n            index: index + 1,\n            type: type,\n            content: content,\n            // 建议：为了调试方便，可以把原始第一行也留着\n            raw_header: lines[0], \n            full_text: pageText \n        }\n    };\n});\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        224
+      ],
+      "id": "63f2baf9-d824-4ef0-86f1-f90508d40049",
+      "name": "文本解析"
+    },
+    {
+      "parameters": {
+        "batchSize": 6,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        320,
+        224
+      ],
+      "id": "65b515f7-e631-45b4-9505-ee7300d76fd7",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai.gitee.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $('Loop Over Items').item.json.content }}"
+            },
+            {
+              "name": "model",
+              "value": "z-image-turbo"
+            },
+            {
+              "name": "size",
+              "value": "768x1024"
+            },
+            {
+              "name": "num_inference_steps",
+              "value": "15"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        544,
+        240
+      ],
+      "id": "424fc9d4-8a3c-4f65-a736-f06038fedb7f",
+      "name": "z-image-turbo",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "yQfPFOrkNQgC3KlD",
+          "name": "gitee-ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "MiniMaxAI/MiniMax-M2",
+          "mode": "list",
+          "cachedResultName": "MiniMaxAI/MiniMax-M2"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        432
+      ],
+      "id": "7b638c4b-b15c-4fcd-9458-60e0b40bfffc",
+      "name": "硅基流动M2",
+      "credentials": {
+        "openAiApi": {
+          "id": "k29wq7vvPXvB21qg",
+          "name": "硅基流动"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.topic }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "你是一个小红书内容创作专家。用户会给你一个主题，你需要生成一个适合小红书的图文内容大纲。  \n# 要求： \n1. 第一页必须是[封面]，包含标题和副标题。 \n2. 内容控制在 4-9 页。 \n3. 每一页必须以 <page> 标签分隔。 \n4. 每页第一行必须标记类型：[封面]、[内容] 或 [总结]。 \n5. 后面紧跟该页面的画面描述和文案。 \n6. 画面描述要具体、详细，适合用于 AI 绘画提示词。  \n# 输出格式严格按照示例，不要有其他多余的描述性语言： \n<page>\n [封面] \n标题：5分钟学会手冲咖啡 \n画面：温馨的咖啡角，阳光洒在手冲壶上，特写镜头。 \n文字排版：\n                          ┌──────────────────────────────┐\n                          │  洁面是保湿第一步           │ ← 主文案，右上角，白色+描边\n                          │  温和洁净 · 水润锁水         │ ← 副文案，下方，浅灰白\n                          └──────────────────────────────┘\n\n[左下角]  [品牌Logo]  ← 小而精致，不干扰主体\n<page>\n[内容] \n文案：准备好滤纸和咖啡豆... \n画面：整齐摆放的咖啡器具，俯拍视角。\n文字排版：\n[顶部]  冬季保湿要点总结         ← 主标题，吸引注意力\n        温和洁面 + 多层保湿 + 内外补水  ← 方法拆解，视觉化引导\n[中部]  [产品全家福]             ← 产品支撑，建立信任\n[底部]  [手部使用特写]           ← 效果可视化，增强代入感\n        让肌肤水润过冬！          ← 结尾号召，情绪收尾"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -256,
+        224
+      ],
+      "id": "ed232942-24e5-4e1e-a873-953e0e8600c7",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. 获取 Base64 字符串\nlet base64String = $input.item.json.data[0].b64_json;\nif (base64String && base64String.includes('base64,')) {\n    base64String = base64String.split('base64,')[1];\n}\n\n// 2. 生成中国时区日期 (UTC+8)\n// 方法：获取当前时间 -> 转换为 UTC+8 的字符串 -> 截取前10位\n// toLocaleString('en-CA') 输出格式默认就是 YYYY-MM-DD，非常适合做文件名\nconst now = new Date();\nconst dateDir = now.toLocaleString('en-CA', { \n    timeZone: 'Asia/Shanghai', \n    year: 'numeric', \n    month: '2-digit', \n    day: '2-digit' \n}); \n// 此时 dateDir 严格等于 \"2023-10-27\" (中国时间)\n\n// 3. 生成唯一文件名\nconst fileName = `redink_${now.getTime()}_${Math.floor(Math.random() * 1000)}.png`;\n\n// 4. 构建完整的上传路径\nconst uploadPath = `ai-images/${dateDir}/${fileName}`;\n\nreturn {\n  json: {\n    fileName: fileName,\n    uploadPath: uploadPath\n  },\n  binary: {\n    image: {\n      data: base64String, \n      mimeType: 'image/png',\n      fileExtension: 'png',\n      fileName: fileName\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        240
+      ],
+      "id": "13c5a646-3bde-40c6-a642-a5bece87767e",
+      "name": "base64转Binary对象"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "yangshare-blog",
+        "fileName": "={{ $json.uploadPath }}",
+        "binaryPropertyName": "image",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        992,
+        240
+      ],
+      "id": "885b7893-64ab-4990-b69b-28622d7da392",
+      "name": "上传OSS",
+      "credentials": {
+        "s3": {
+          "id": "njgC4L4Mjnk3lyg7",
+          "name": "七牛云"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea20064e-308c-4f49-a1c2-0d5719324006",
+              "name": "topic",
+              "value": "={{ $('Webhook').item.json.body.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "2fcbc494-5713-4a75-b0d7-d64f51c37023",
+              "name": "content",
+              "value": "={{ $('文本解析').item.json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "4064bef2-b701-4539-b45e-0eb198da7e11",
+              "name": "uploadPath",
+              "value": "=http://qiniu.yangshare.com/{{ $('base64转Binary对象').item.json.uploadPath }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        32
+      ],
+      "id": "15c371f8-9f01-4b2e-9b57-c9d8180c267e",
+      "name": "整合结果"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "文本解析": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "整合结果",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "z-image-turbo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "z-image-turbo": {
+      "main": [
+        [
+          {
+            "node": "base64转Binary对象",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "硅基流动M2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "文本解析",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "base64转Binary对象": {
+      "main": [
+        [
+          {
+            "node": "上传OSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "上传OSS": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "hXGpgU8ln9vzmawc"
+  },
+  "versionId": "4e1c6767-fc69-4eec-8666-171210dbdcf0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "97f569abf561dba0fc954ccbe695d9f77ac451fc34c397e7f0de93e63cc3264e"
+  },
+  "id": "PJShj8ZlKjzPjoNr",
+  "tags": [
+    {
+      "updatedAt": "2025-12-01T01:25:45.945Z",
+      "createdAt": "2025-12-01T01:25:45.945Z",
+      "id": "x0FtWO5i5S6inzKy",
+      "name": "图片"
+    }
+  ]
+}

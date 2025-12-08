@@ -1,0 +1,201 @@
+{
+  "name": "【gitee-z-image-turbo】单张生成",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7858b101-49be-45ef-ab59-d4b35c594b2a",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -480,
+        48
+      ],
+      "id": "b3e56560-b838-4fc1-a981-7afacfcb72d7",
+      "name": "Webhook",
+      "webhookId": "7858b101-49be-45ef-ab59-d4b35c594b2a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai.gitee.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.body.copywriting }}"
+            },
+            {
+              "name": "model",
+              "value": "z-image-turbo"
+            },
+            {
+              "name": "size",
+              "value": "768x1024"
+            },
+            {
+              "name": "num_inference_steps",
+              "value": "15"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -256,
+        48
+      ],
+      "id": "e8908f90-d636-45d5-a533-9fca5f7ab249",
+      "name": "z-image-turbo",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "yQfPFOrkNQgC3KlD",
+          "name": "gitee-ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. 获取 Base64 字符串\nlet base64String = $input.item.json.data[0].b64_json;\nif (base64String && base64String.includes('base64,')) {\n    base64String = base64String.split('base64,')[1];\n}\n\n// 2. 生成中国时区日期 (UTC+8)\n// 方法：获取当前时间 -> 转换为 UTC+8 的字符串 -> 截取前10位\n// toLocaleString('en-CA') 输出格式默认就是 YYYY-MM-DD，非常适合做文件名\nconst now = new Date();\nconst dateDir = now.toLocaleString('en-CA', { \n    timeZone: 'Asia/Shanghai', \n    year: 'numeric', \n    month: '2-digit', \n    day: '2-digit' \n}); \n// 此时 dateDir 严格等于 \"2023-10-27\" (中国时间)\n\n// 3. 生成唯一文件名\nconst fileName = `redink_${now.getTime()}_${Math.floor(Math.random() * 1000)}.png`;\n\n// 4. 构建完整的上传路径\nconst uploadPath = `ai-images/${dateDir}/${fileName}`;\n\nreturn {\n  json: {\n    fileName: fileName,\n    uploadPath: uploadPath\n  },\n  binary: {\n    image: {\n      data: base64String, \n      mimeType: 'image/png',\n      fileExtension: 'png',\n      fileName: fileName\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        48
+      ],
+      "id": "49726137-06f6-4253-b839-6a3d16900f0a",
+      "name": "base64转Binary对象"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "yangshare-blog",
+        "fileName": "={{ $json.uploadPath }}",
+        "binaryPropertyName": "image",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        192,
+        48
+      ],
+      "id": "9fbc99d2-afd2-4ff0-bc46-114899ffb6dd",
+      "name": "上传OSS",
+      "credentials": {
+        "s3": {
+          "id": "njgC4L4Mjnk3lyg7",
+          "name": "七牛云"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2fcbc494-5713-4a75-b0d7-d64f51c37023",
+              "name": "content",
+              "value": "={{ $('Webhook').item.json.body.copywriting }}",
+              "type": "string"
+            },
+            {
+              "id": "4064bef2-b701-4539-b45e-0eb198da7e11",
+              "name": "uploadPath",
+              "value": "=http://qiniu.yangshare.com/{{ $('base64转Binary对象').item.json.uploadPath }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        48
+      ],
+      "id": "c8df6ee9-10ad-4045-b4bb-1b5ac23eb1f0",
+      "name": "整合结果"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "z-image-turbo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "z-image-turbo": {
+      "main": [
+        [
+          {
+            "node": "base64转Binary对象",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "base64转Binary对象": {
+      "main": [
+        [
+          {
+            "node": "上传OSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "上传OSS": {
+      "main": [
+        [
+          {
+            "node": "整合结果",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "hXGpgU8ln9vzmawc"
+  },
+  "versionId": "b7231623-b007-4638-be72-623889e7b6f1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "97f569abf561dba0fc954ccbe695d9f77ac451fc34c397e7f0de93e63cc3264e"
+  },
+  "id": "aq8OuTcScVsxkeWm",
+  "tags": [
+    {
+      "updatedAt": "2025-12-01T01:25:45.945Z",
+      "createdAt": "2025-12-01T01:25:45.945Z",
+      "id": "x0FtWO5i5S6inzKy",
+      "name": "图片"
+    }
+  ]
+}
