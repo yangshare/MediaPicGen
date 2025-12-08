@@ -35,15 +35,15 @@ jobs:
         id: version
         shell: bash
         run: |
-          # 获取 package.json 中的版本号
-          BASE_VERSION=$(node -p "require('./package.json').version")
-          # 组合版本号: base_version.run_number (e.g. 1.0.0.45)
-          # 注意：Windows exe 版本号通常为 x.x.x.x 格式
-          NEW_VERSION="${BASE_VERSION}.${{ github.run_number }}"
+          # 获取 package.json 中的版本号前两位 (Major.Minor)
+          MAJOR_MINOR=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')")
+          # 组合版本号: Major.Minor.run_number (e.g. 1.0.45) - 确保符合 SemVer 三段式规范
+          NEW_VERSION="${MAJOR_MINOR}.${{ github.run_number }}"
+          
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           
-          # 更新 package.json 版本号 (使用 node 直接写入，绕过 npm version 的 SemVer 严格校验)
+          # 更新 package.json 版本号
           node -e "let pkg=require('./package.json'); pkg.version='${NEW_VERSION}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
       - name: Build Application

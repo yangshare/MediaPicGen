@@ -6,59 +6,31 @@ echo           MediaPicGen One-Click Build Script
 echo =======================================================
 
 :: 1. Cleanup
-echo [1/5] Cleaning previous builds...
-if exist "release-packager" (
+echo [1/3] Cleaning previous builds...
+if exist "release" (
     echo   - Removing old release...
-    rmdir /s /q "release-packager"
-)
-if exist "build-stage" (
-    echo   - Removing old build stage...
-    rmdir /s /q "build-stage"
+    rmdir /s /q "release"
 )
 if exist "dist" rmdir /s /q "dist"
 if exist "dist-electron" rmdir /s /q "dist-electron"
 
-:: 2. Compile
-echo [2/5] Compiling source code...
-call pnpm run compile
+:: 2. Build (Compile + Package)
+echo [2/3] Building application (using electron-builder)...
+:: Note: Mirror configuration is now handled in .npmrc
+call pnpm run build
 if %errorlevel% neq 0 (
-    echo [ERROR] Compilation failed!
+    echo [ERROR] Build failed!
     pause
     exit /b %errorlevel%
 )
-
-:: 3. Prepare Stage
-echo [3/5] Preparing build stage...
-mkdir build-stage
-echo   - Copying dist...
-xcopy /E /I /Q /Y dist build-stage\dist >nul
-echo   - Copying dist-electron...
-xcopy /E /I /Q /Y dist-electron build-stage\dist-electron >nul
-echo   - Copying package.json...
-copy /Y package.json build-stage\package.json >nul
-
-:: 4. Package
-echo [4/5] Packaging application (using electron-packager)...
-set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
-call pnpm exec electron-packager build-stage MediaPicGen --platform=win32 --arch=x64 --out=release-packager --overwrite
-if %errorlevel% neq 0 (
-    echo [ERROR] Packaging failed!
-    pause
-    exit /b %errorlevel%
-)
-
-:: 5. Cleanup Stage
-echo [5/5] Cleaning up temporary files...
-rmdir /s /q build-stage
 
 echo.
 echo =======================================================
 echo [SUCCESS] Build completed successfully!
 echo.
 echo Output location:
-echo   %~dp0release-packager\MediaPicGen-win32-x64\MediaPicGen.exe
+echo   %~dp0release\MediaPicGen Setup 1.0.0.exe
+echo   %~dp0release\win-unpacked\MediaPicGen.exe
 echo.
-echo You can now zip the folder 'release-packager\MediaPicGen-win32-x64'
-echo and share it with your friends.
 echo =======================================================
 pause
