@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { X, ChevronLeft, ChevronRight, Save, Pencil } from 'lucide-react';
 import { TopicResult } from '../types';
 
 interface ImageViewerProps {
@@ -15,6 +15,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ results, initialIndex,
   
   const [editContent, setEditContent] = useState(currentItem.content);
   const [isDirty, setIsDirty] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Sync editContent when currentItem changes
   useEffect(() => {
@@ -40,12 +41,15 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ results, initialIndex,
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't switch images if user is typing in the textarea
+      const isEditing = document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'INPUT';
+
       if (e.key === 'Escape') {
         onClose();
       } else if (e.key === 'ArrowLeft') {
-        handlePrevious();
+        if (!isEditing) handlePrevious();
       } else if (e.key === 'ArrowRight') {
-        handleNext();
+        if (!isEditing) handleNext();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -93,26 +97,31 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ results, initialIndex,
         {/* Text Side */}
         <div className="w-1/3 h-full flex flex-col justify-center text-white/90 animate-in slide-in-from-left-4 duration-300 relative group">
           <div className="max-h-full overflow-y-auto pr-4 custom-scrollbar flex flex-col h-full">
-            <div className="flex items-center justify-between sticky top-0 bg-black/95 py-2 z-10 mb-4">
-              <h3 className="text-2xl font-bold">{currentItem.topic}</h3>
-              {isDirty && (
-                <button 
-                  onClick={handleSave}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-all animate-in fade-in zoom-in"
+            <div className="flex items-center justify-between sticky top-0 bg-black/95 py-2 z-10 mb-4 pl-2">
+              <div className="flex items-center gap-3">
+                <h3 className="text-2xl font-bold">{currentItem.topic}</h3>
+                <button
+                  onClick={isDirty ? handleSave : () => textareaRef.current?.focus()}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 shrink-0 ${
+                    isDirty 
+                      ? "text-blue-400 hover:text-blue-300 hover:bg-white/10 opacity-100 scale-110" 
+                      : "text-white/40 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100"
+                  }`}
+                  title={isDirty ? "保存更改" : "编辑文案"}
                 >
-                  <Save size={16} />
-                  保存
+                  {isDirty ? <Save size={20} /> : <Pencil size={16} />}
                 </button>
-              )}
+              </div>
             </div>
             
             <textarea
+              ref={textareaRef}
               value={editContent}
               onChange={(e) => {
                 setEditContent(e.target.value);
                 setIsDirty(e.target.value !== currentItem.content);
               }}
-              className="w-full flex-1 bg-transparent text-lg leading-relaxed whitespace-pre-wrap outline-none resize-none border-none p-0 focus:ring-0 placeholder-white/30 text-white/90 custom-scrollbar"
+              className="w-full flex-1 bg-transparent text-lg leading-relaxed whitespace-pre-wrap outline-none resize-none border-2 border-transparent py-2 px-1.5 rounded-lg focus:ring-0 placeholder-white/30 text-white/90 custom-scrollbar hover:bg-white/5 hover:border-white/10 focus:bg-white/10 focus:border-white/20 transition-all duration-200"
               placeholder="输入文案内容..."
             />
           </div>
