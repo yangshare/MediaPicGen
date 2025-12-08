@@ -43,8 +43,8 @@ jobs:
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           
-          # 更新 package.json 版本号，确保 electron-builder 打包时使用新版本
-          npm version $NEW_VERSION --no-git-tag-version
+          # 更新 package.json 版本号 (使用 node 直接写入，绕过 npm version 的 SemVer 严格校验)
+          node -e "let pkg=require('./package.json'); pkg.version='${NEW_VERSION}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
       - name: Build Application
         # electron-builder 会读取 package.json 中的新版本号
