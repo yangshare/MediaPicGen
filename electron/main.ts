@@ -25,6 +25,10 @@ ipcMain.handle('dialog:openDirectory', async () => {
   }
 });
 
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion();
+});
+
 ipcMain.handle('download-batch-images', async (event, { basePath, topic, images }: { basePath: string, topic: string, images: { uploadPath: string, content: string }[] }) => {
   try {
     // Sanitize topic for folder name
@@ -142,21 +146,26 @@ function setupAutoUpdater() {
   
   autoUpdater.on('checking-for-update', () => {
     log.info('Checking for update...');
+    win?.webContents.send('update-status', '正在检查更新...');
   });
   autoUpdater.on('update-available', (info) => {
     log.info('Update available.', info);
+    win?.webContents.send('update-status', `发现新版本 v${info.version}，正在下载...`);
   });
   autoUpdater.on('update-not-available', (info) => {
     log.info('Update not available.', info);
+    // win?.webContents.send('update-status', '当前已是最新版本');
   });
   autoUpdater.on('error', (err) => {
     log.error('Error in auto-updater. ' + err);
+    win?.webContents.send('update-status', '检查更新失败');
   });
   autoUpdater.on('download-progress', (progressObj) => {
     let log_message = "Download speed: " + progressObj.bytesPerSecond;
     log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
     log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
     log.info(log_message);
+    win?.webContents.send('update-progress', progressObj.percent);
   });
   autoUpdater.on('update-downloaded', (info) => {
     log.info('Update downloaded', info);
