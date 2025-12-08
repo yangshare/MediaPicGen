@@ -1,7 +1,11 @@
 {
-  "name": "ai-text-gen-tool",
+  "name": "media-pic-gen",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.8",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yangshare/MediaPicGen.git"
+  },
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "concurrently \"pnpm run dev:vite\" \"pnpm run dev:electron\"",
@@ -13,14 +17,6 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "clsx": "^2.1.0",
-    "fabric": "^5.3.0",
-    "file-saver": "^2.0.5",
-    "jszip": "^3.10.1",
-    "lucide-react": "^0.344.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "tailwind-merge": "^2.2.1",
     "@types/fabric": "^5.3.0",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20.11.24",
@@ -28,11 +24,19 @@
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
+    "clsx": "^2.1.0",
     "concurrently": "^8.2.2",
     "electron": "^29.1.0",
     "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2",
+    "fabric": "^5.3.0",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.344.0",
     "postcss": "^8.4.35",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
     "vite": "^5.1.4",
@@ -64,5 +68,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
+  },
+  "dependencies": {
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.6.2"
   }
 }

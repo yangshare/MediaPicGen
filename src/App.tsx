@@ -19,6 +19,42 @@ function App() {
     }
   }, []);
 
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      // @ts-ignore
+      const electron = window.require ? window.require('electron') : require('electron');
+      const { ipcRenderer } = electron;
+      
+      const handleUpdateStatus = (_: any, text: string) => {
+        setUpdateStatus(text);
+        // Clean up status after 5 seconds if it's not a persistent state
+        if (!text.includes('下载') && !text.includes('重启')) {
+          setTimeout(() => setUpdateStatus(null), 5000);
+        }
+      };
+      
+      const handleUpdateProgress = (_: any, percent: number) => {
+        setDownloadProgress(percent);
+        if (percent >= 100) {
+          setTimeout(() => setDownloadProgress(null), 1000);
+        }
+      };
+
+      ipcRenderer.on('update-status', handleUpdateStatus);
+      ipcRenderer.on('update-progress', handleUpdateProgress);
+
+      return () => {
+        ipcRenderer.removeListener('update-status', handleUpdateStatus);
+        ipcRenderer.removeListener('update-progress', handleUpdateProgress);
+      };
+    } catch (e) {
+      console.log('Not in Electron environment or IPC not available');
+    }
+  }, []);
+
   const handleEditImage = (imageUrl: string) => {
     setEditorInitialImage(imageUrl);
     setCurrentView('editor');
@@ -82,6 +118,23 @@ function App() {
         onClose={() => setShowSettings(false)}
         isInitialSetup={isInitialSetup}
       />
+
+      {/* Update Notification */}
+      {updateStatus && (
+        <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg border border-blue-100 z-[100] max-w-sm animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium text-slate-700">{updateStatus}</div>
+          </div>
+          {downloadProgress !== null && downloadProgress < 100 && (
+            <div className="mt-2 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-500 transition-all duration-300"
+                style={{ width: `${downloadProgress}%` }}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

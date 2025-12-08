@@ -5,6 +5,8 @@ import https from 'https';
 import http from 'http';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
+import { autoUpdater } from 'electron-updater';
+import log from 'electron-log';
 
 const streamPipeline = promisify(pipeline);
 
@@ -132,4 +134,52 @@ app.on('activate', () => {
   }
 });
 
-app.whenReady().then(createWindow);
+function setupAutoUpdater() {
+  log.transports.file.level = 'info';
+  autoUpdater.logger = log;
+  // Allow updating from prerelease (since dev-build.yml publishes prereleases)
+  autoUpdater.allowPrerelease = true;
+  
+  autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for update...');
+  });
+  autoUpdater.on('update-available', (info) => {
+    log.info('Update available.', info);
+  });
+  autoUpdater.on('update-not-available', (info) => {
+    log.info('Update not available.', info);
+  });
+  autoUpdater.on('error', (err) => {
+    log.error('Error in auto-updater. ' + err);
+  });
+  autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = "Download speed: " + progressObj.bytesPerSecond;
+    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+    log.info(log_message);
+  });
+  autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded', info);
+    dialog.showMessageBox({
+      type: 'info',
+      title: '发现新版本',
+      message: '新版本已下载完成，应用将重启以进行更新。',
+      buttons: ['立即重启', '稍后']
+    }).then((returnValue) => {
+      if (returnValue.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+}
+
+app.whenReady().then(() => {
+  createWindow();
+  setupAutoUpdater();
+  if (app.isPackaged) {
+    // Check for updates after a short delay to ensure window is ready if we want to send events (though notification handles itself)
+    setTimeout(() => {
+      autoUpdater.checkForUpdatesAndNotify();
+    }, 3000);
+  }
+});
