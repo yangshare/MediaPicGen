@@ -31,6 +31,7 @@ stages:
           - name: BUILD_ARTIFACT
             path:
               - ./release
+              - ./package.json
         strategy: {}
       - step: publish@general_artifacts
         name: publish_general_artifacts
@@ -43,10 +44,11 @@ stages:
     strategy: naturally
     trigger: auto
     steps:
-      - step: publish@release_artifacts
-        name: publish_release_artifacts
-        displayName: 发布
+      - step: build@nodejs
+        name: gitee_release
+        displayName: 发布到 Gitee Releases
+        nodeVersion: 20.10.0
         dependArtifact: release_output
-        version: 1.0.0.0
-        autoIncrement: true
-        strategy: {}
+        commands:
+          - echo "Starting Gitee Release process..."
+          - node .workflow/scripts/gitee-release.js
