@@ -194,6 +194,9 @@ function setupAutoUpdater() {
       log.error('Failed to configure mirror feed, falling back to default GitHub provider.', e);
       // 如果获取失败，回退到默认的 GitHub Provider (读取 package.json 配置)
       // 这种情况下不做任何 setFeedURL 操作，electron-updater 会自动使用 package.json 里的 repository 信息
+      if (app.isPackaged) {
+         autoUpdater.checkForUpdatesAndNotify();
+      }
     }
   })();
 
@@ -243,10 +246,6 @@ function setupAutoUpdater() {
 app.whenReady().then(() => {
   createWindow();
   setupAutoUpdater();
-  if (app.isPackaged) {
-    // Check for updates after a short delay to ensure window is ready if we want to send events (though notification handles itself)
-    setTimeout(() => {
-      autoUpdater.checkForUpdatesAndNotify();
-    }, 3000);
-  }
+  // 注意：checkForUpdatesAndNotify 已移动到 setupAutoUpdater 内部的异步逻辑中，
+  // 无论是成功配置镜像源还是回退到默认源，都会在那里触发，避免竞争条件。
 });
