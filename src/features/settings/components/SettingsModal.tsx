@@ -18,17 +18,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
 
   useEffect(() => {
     if (isOpen) {
-      const currentSettings = SettingsManager.getSettings();
-      if (currentSettings) {
-        setBaseUrl(currentSettings.apiBaseUrl);
-        setAuthHeader(currentSettings.authHeader);
-        setDownloadPath(currentSettings.downloadPath || '');
-      } else {
-        // Default placeholders or empty
-        setBaseUrl('http://10.2.3.7:5678/webhook');
-        setAuthHeader('Basic YW1iOjZ5SXReaGwqNlR2NUFa');
-        setDownloadPath('');
-      }
+      const loadSettings = async () => {
+        const currentSettings = await SettingsManager.getSettings();
+        if (currentSettings) {
+          setBaseUrl(currentSettings.apiBaseUrl);
+          setAuthHeader(currentSettings.authHeader);
+          setDownloadPath(currentSettings.downloadPath || '');
+        } else {
+          // Default placeholders or empty
+          setBaseUrl('http://10.2.3.7:5678/webhook');
+          setAuthHeader('Basic YW1iOjZ5SXReaGwqNlR2NUFa');
+          setDownloadPath('');
+        }
+      };
+      loadSettings();
 
       // Get App Version
       try {
@@ -68,7 +71,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!baseUrl.trim() || !authHeader.trim()) {
       setError('所有字段都是必填项');
       return;
@@ -80,7 +83,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
       downloadPath: downloadPath.trim(),
     };
 
-    SettingsManager.saveSettings(settings);
+    await SettingsManager.saveSettings(settings);
     setError(null);
     onClose();
   };

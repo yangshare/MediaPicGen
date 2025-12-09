@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TopicResult } from '../types';
+import { store } from '../../../utils/store';
 
 export interface HistoryItem {
   id: string;
@@ -14,14 +15,30 @@ export const useTopicHistory = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse history:', e);
-      }
-    }
+    const loadHistory = async () => {
+        let saved = await store.get<HistoryItem[]>(STORAGE_KEY);
+        
+        if (!saved || saved.length === 0) {
+           // Migration from localStorage
+           const legacy = localStorage.getItem(STORAGE_KEY);
+           if (legacy) {
+             try {
+               const parsed = JSON.parse(legacy);
+               if (parsed && parsed.length > 0) {
+                 saved = parsed;
+                 await store.set(STORAGE_KEY, saved);
+               }
+             } catch (e) {
+                console.error('History migration failed', e);
+             }
+           }
+        }
+
+        if (saved) {
+            setHistory(saved);
+        }
+    };
+    loadHistory();
   }, []);
 
   const addToHistory = (topic: string, results: TopicResult[]) => {
@@ -34,7 +51,7 @@ export const useTopicHistory = () => {
 
     setHistory((prev) => {
       const newHistory = [newItem, ...prev];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+      store.set(STORAGE_KEY, newHistory);
       return newHistory;
     });
 
@@ -46,7 +63,7 @@ export const useTopicHistory = () => {
       const newHistory = prev.map((item) => 
         item.id === id ? { ...item, results: newResults } : item
       );
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+      store.set(STORAGE_KEY, newHistory);
       return newHistory;
     });
   };
@@ -54,14 +71,14 @@ export const useTopicHistory = () => {
   const deleteHistoryItem = (id: string) => {
     setHistory((prev) => {
       const newHistory = prev.filter((item) => item.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+      store.set(STORAGE_KEY, newHistory);
       return newHistory;
     });
   };
 
   const clearHistory = () => {
     setHistory([]);
-    localStorage.removeItem(STORAGE_KEY);
+    store.delete(STORAGE_KEY);
   };
 
   return {

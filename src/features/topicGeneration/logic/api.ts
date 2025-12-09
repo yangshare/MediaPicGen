@@ -1,8 +1,8 @@
 import { TopicResponse } from '../types';
 import { SettingsManager } from '../../settings/logic/settingsManager';
 
-const getApiConfig = () => {
-  const settings = SettingsManager.getSettings();
+const getApiConfig = async () => {
+  const settings = await SettingsManager.getSettings();
   if (!settings) {
     throw new Error('Please configure API settings first.');
   }
@@ -10,7 +10,7 @@ const getApiConfig = () => {
 };
 
 export const generateTopicContent = async (topic: string): Promise<TopicResponse> => {
-  const { apiBaseUrl, authHeader } = getApiConfig();
+  const { apiBaseUrl, authHeader } = await getApiConfig();
   
   try {
     const response = await fetch(`${apiBaseUrl}/78871f55-928a-42e5-bac4-0e58470443ce`, {
@@ -35,7 +35,7 @@ export const generateTopicContent = async (topic: string): Promise<TopicResponse
 };
 
 export const regenerateImage = async (prompt: string): Promise<string> => {
-  const { apiBaseUrl, authHeader } = getApiConfig();
+  const { apiBaseUrl, authHeader } = await getApiConfig();
   
   try {
     const response = await fetch(`${apiBaseUrl}/7858b101-49be-45ef-ab59-d4b35c594b2a`, {
