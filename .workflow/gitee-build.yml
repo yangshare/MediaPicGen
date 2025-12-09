@@ -1,0 +1,49 @@
+version: '1.0'
+name: gitee-build-pipeline
+displayName: Gitee构建发布流程
+triggers:
+  push:
+    branches:
+      include:
+        - main
+        - master
+stages:
+  - name: compile
+    displayName: 编译
+    strategy: naturally
+    trigger: auto
+    steps:
+      - step: build@nodejs
+        name: build_nodejs
+        displayName: Nodejs 构建
+        nodeVersion: 20
+        commands:
+          - echo "Installing pnpm..."
+          - npm install -g pnpm
+          - echo "Installing dependencies..."
+          - pnpm install --no-frozen-lockfile
+          - echo "Updating version..."
+          - node -e "try { let pkg=require('./package.json'); let v=pkg.version.split('.'); let buildNum=process.env.GITEE_BUILD_NUMBER || process.env.GITEE_PIPELINE_BUILD_NUMBER || '0'; pkg.version=\`\${v[0]}.\${v[1]}.\${buildNum}\`; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2)); console.log('Version updated to ' + pkg.version); } catch(e) { console.error(e); process.exit(1); }"
+          - echo "Building application..."
+          - pnpm run build
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./release
+      - step: publish@general_artifacts
+        name: publish_general_artifacts
+        displayName: 上传制品
+        dependArtifact: BUILD_ARTIFACT
+        artifactName: release_output
+        dependsOn: build_nodejs
+  - name: release
+    displayName: 发布
+    strategy: naturally
+    trigger: auto
+    steps:
+      - step: publish@release_artifacts
+        name: publish_release_artifacts
+        displayName: 发布
+        dependArtifact: release_output
+        version: 1.0.0
+        autoIncrement: true
