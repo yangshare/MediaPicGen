@@ -34,11 +34,16 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
 
     try {
       setDownloadingId(item.id);
+      
+      const date = new Date(item.timestamp);
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
       // @ts-ignore
       const { ipcRenderer } = window.require('electron');
       const result = await ipcRenderer.invoke('download-batch-images', {
         basePath: settings.downloadPath,
         topic: item.topic,
+        dateStr,
         images: item.results.map(r => ({ uploadPath: r.uploadPath, content: r.content }))
       });
 

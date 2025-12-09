@@ -30,11 +30,14 @@ ipcMain.handle('get-app-version', () => {
   return app.getVersion();
 });
 
-ipcMain.handle('download-batch-images', async (event, { basePath, topic, images }: { basePath: string, topic: string, images: { uploadPath: string, content: string }[] }) => {
+ipcMain.handle('download-batch-images', async (event, { basePath, topic, dateStr, images }: { basePath: string, topic: string, dateStr?: string, images: { uploadPath: string, content: string }[] }) => {
   try {
     // Sanitize topic for folder name
     const safeTopic = topic.replace(/[\\/:*?"<>|]/g, "_");
-    const targetDir = path.join(basePath, safeTopic);
+    // Create path: basePath/dateStr/topic OR basePath/topic
+    const targetDir = dateStr 
+      ? path.join(basePath, dateStr, safeTopic)
+      : path.join(basePath, safeTopic);
 
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
