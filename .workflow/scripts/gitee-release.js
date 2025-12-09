@@ -35,6 +35,14 @@ function getRepoInfo() {
 
 const REPO = getRepoInfo();
 console.log(`Repository: ${REPO}`);
+console.log('GITEE_REPO:', process.env.GITEE_REPO);
+console.log('GITEE_REPO_URL:', process.env.GITEE_REPO_URL);
+console.log('Current working directory:', process.cwd());
+if (fs.existsSync(RELEASE_DIR)) {
+    console.log('Release directory contents:', fs.readdirSync(RELEASE_DIR));
+} else {
+    console.log('Release directory does not exist at:', RELEASE_DIR);
+}
 
 // Helper: Get Version
 function getVersion() {
@@ -204,25 +212,31 @@ function uploadFile(releaseId, filePath) {
 // Main Flow
 async function run() {
     try {
-        const releaseId = await createRelease();
-        
         if (!fs.existsSync(RELEASE_DIR)) {
             console.error(`Release directory not found: ${RELEASE_DIR}`);
-            // Don't fail the build, just skip upload
-            return;
+            process.exit(1);
         }
 
         const files = fs.readdirSync(RELEASE_DIR);
-        for (const file of files) {
-            // Upload .exe, .yml, .zip, .dmg, .AppImage, etc.
-            if (file.match(/\.(exe|yml|zip|dmg|AppImage|blockmap)$/)) {
-                const filePath = path.join(RELEASE_DIR, file);
-                console.log(`Uploading ${file}...`);
-                try {
-                    await uploadFile(releaseId, filePath);
-                } catch (e) {
-                    console.error(`Failed to upload ${file}: ${e.message}`);
-                }
+        const assets = files.filter(file => file.match(/\.(exe|yml|zip|dmg|AppImage|blockmap)$/));
+
+        if (assets.length === 0) {
+            console.error('No matching assets found in release directory.');
+            console.log('Available files:', files);
+            process.exit(1);
+        }
+
+        const releaseId = await createRelease();
+
+        for (const file of assets) {
+            const filePath = path.join(RELEASE_DIR, file);
+            console.log(`Uploading ${file}...`);
+            try {
+                await uploadFile(releaseId, filePath);
+            } catch (e) {
+                console.error(`Failed to upload ${file}: ${e.message}`);
+                // Fail the build if upload fails
+                process.exit(1);
             }
         }
         console.log('Gitee release process completed.');

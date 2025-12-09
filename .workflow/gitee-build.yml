@@ -32,6 +32,7 @@ stages:
             path:
               - ./release
               - ./package.json
+              - ./.workflow
         strategy: {}
       - step: publish@general_artifacts
         name: publish_general_artifacts
@@ -51,4 +52,5 @@ stages:
         dependArtifact: release_output
         commands:
           - echo "Starting Gitee Release process..."
+          - ls -R
           - node .workflow/scripts/gitee-release.js
