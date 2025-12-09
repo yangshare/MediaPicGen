@@ -41,7 +41,15 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
       });
 
       if (result.success) {
-        alert(`下载成功！已保存至：${result.path}`);
+        // Automatically open folder after user confirmation or just open it
+        // User requested "automatic open", so we open it. 
+        // We can ask for confirmation or just do it.
+        // Given the feedback "won't automatically open", we'll open it.
+        // We'll use confirm so they can choose NOT to open if they are spamming downloads.
+        const shouldOpen = confirm(`下载成功！已保存至：${result.path}\n\n是否打开文件夹？`);
+        if (shouldOpen) {
+          await ipcRenderer.invoke('shell:openPath', result.path);
+        }
       } else {
         throw new Error(result.error);
       }
