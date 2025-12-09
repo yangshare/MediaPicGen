@@ -1,4 +1,4 @@
-name: Build and Release Develop
+name: Build and Release
 
 on:
   push:
@@ -62,11 +62,11 @@ jobs:
         with:
           # 使用 v1.0.0.xx 格式作为 tag
           tag_name: v${{ steps.version.outputs.version }}
-          name: Development Build v${{ steps.version.outputs.version }} (${{ steps.slug.outputs.sha8 }})
+          name: Release v${{ steps.version.outputs.version }} (${{ steps.slug.outputs.sha8 }})
           files: |
             release/*.exe
             release/latest.yml
           draft: false
-          prerelease: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
