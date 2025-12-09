@@ -2,6 +2,7 @@ version: '1.0'
 name: gitee-build-pipeline
 displayName: Gitee构建发布流程
 triggers:
+  trigger: auto
   push:
     branches:
       include:
@@ -16,7 +17,7 @@ stages:
       - step: build@nodejs
         name: build_nodejs
         displayName: Nodejs 构建
-        nodeVersion: 20
+        nodeVersion: 20.10.0
         commands:
           - echo "Installing pnpm..."
           - npm install -g pnpm
@@ -30,6 +31,7 @@ stages:
           - name: BUILD_ARTIFACT
             path:
               - ./release
+        strategy: {}
       - step: publish@general_artifacts
         name: publish_general_artifacts
         displayName: 上传制品
@@ -45,5 +47,6 @@ stages:
         name: publish_release_artifacts
         displayName: 发布
         dependArtifact: release_output
-        version: 1.0.0
+        version: 1.0.0.0
         autoIncrement: true
+        strategy: {}
