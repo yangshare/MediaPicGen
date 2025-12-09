@@ -154,14 +154,14 @@ function setupAutoUpdater() {
   (async () => {
     try {
       // 1. 获取最新的 Release (包括 Pre-release)
-      // 注意：这里我们通过 ghproxy 访问 GitHub API 以避免 API 也被墙（虽然 API 稍微好点，但为了保险）
-      // GitHub API: https://api.github.com/repos/yangshare/MediaPicGen/releases?per_page=1
-      const apiUrl = `https://ghfast.top/https://api.github.com/repos/${repo}/releases?per_page=1`;
+      // 直接访问 GitHub API 获取版本信息。注意：ghfast.top 等镜像源通常不支持代理 API 请求 (会返回 403)。
+      // 如果直接访问 API 成功，我们将构建镜像下载链接加速下载；如果失败，将回退到默认更新逻辑。
+      const apiUrl = `https://api.github.com/repos/${repo}/releases?per_page=1`;
       
       log.info(`Fetching latest release info from: ${apiUrl}`);
       
       // 使用内建的 net 模块或者 fetch (Electron 29 支持 fetch)
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, { headers: { 'User-Agent': 'MediaPicGen' } });
       if (!response.ok) {
         throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}`);
       }
