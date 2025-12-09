@@ -57,6 +57,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
       alert('无法打开文件夹选择器，请手动输入路径');
     }
   };
+  const handleOpenLog = async () => {
+    try {
+      // @ts-ignore
+      const { ipcRenderer } = window.require('electron');
+      await ipcRenderer.invoke('open-log-folder');
+    } catch (e) {
+      console.error('Failed to open log folder', e);
+      alert('无法打开日志文件夹');
+    }
+  };
 
   const handleSave = () => {
     if (!baseUrl.trim() || !authHeader.trim()) {
@@ -155,6 +165,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
              <div className="text-xs text-slate-400">
                当前版本: v{appVersion}
              </div>
+             <button
+               onClick={handleOpenLog}
+               className="text-xs text-blue-500 hover:text-blue-600 hover:underline cursor-pointer"
+             >
+               打开日志目录
+             </button>
           </div>
 
         </div>

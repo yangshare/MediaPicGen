@@ -30,8 +30,8 @@ function App() {
       
       const handleUpdateStatus = (_: any, text: string) => {
         setUpdateStatus(text);
-        // Clean up status after 5 seconds if it's not a persistent state
-        if (!text.includes('下载') && !text.includes('重启')) {
+        // Clean up status after 5 seconds if it's not a persistent state or an error
+        if (!text.includes('下载') && !text.includes('重启') && !text.includes('失败')) {
           setTimeout(() => setUpdateStatus(null), 5000);
         }
       };
@@ -43,12 +43,20 @@ function App() {
         }
       };
 
+      const handleUpdateError = (_: any, errorMsg: string) => {
+        console.error('Update Error:', errorMsg);
+        // 自动弹窗提示错误，方便用户反馈
+        alert(`更新失败: ${errorMsg}\n\n请检查网络连接或稍后重试。`);
+      };
+
       ipcRenderer.on('update-status', handleUpdateStatus);
       ipcRenderer.on('update-progress', handleUpdateProgress);
+      ipcRenderer.on('update-error', handleUpdateError);
 
       return () => {
         ipcRenderer.removeListener('update-status', handleUpdateStatus);
         ipcRenderer.removeListener('update-progress', handleUpdateProgress);
+        ipcRenderer.removeListener('update-error', handleUpdateError);
       };
     } catch (e) {
       console.log('Not in Electron environment or IPC not available');
