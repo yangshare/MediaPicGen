@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AppSettings } from '../types';
 import { SettingsManager } from '../logic/settingsManager';
 import { X, Save, FolderOpen } from 'lucide-react';
+import { useToast } from '../../../components/Toast';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, isInitialSetup = false }) => {
+  const { showToast } = useToast();
   const [baseUrl, setBaseUrl] = useState('');
   const [authHeader, setAuthHeader] = useState('');
   const [downloadPath, setDownloadPath] = useState('');
@@ -85,7 +87,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
 
     await SettingsManager.saveSettings(settings);
     setError(null);
-    onClose();
+    
+    if (isInitialSetup) {
+      onClose();
+    } else {
+      showToast('设置保存成功', 'success');
+    }
   };
 
   if (!isOpen) return null;

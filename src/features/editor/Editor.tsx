@@ -6,6 +6,7 @@ import { Sidebar } from '../../components/Sidebar';
 import { PropertyPanel } from '../../components/PropertyPanel';
 import { BatchPanel } from '../../components/BatchPanel';
 import { useFabric } from '../../hooks/useFabric';
+import { useToast } from '../../components/Toast';
 
 interface EditorProps {
   initialImageUrl?: string | null;
@@ -14,6 +15,7 @@ interface EditorProps {
 export const Editor: React.FC<EditorProps> = ({ initialImageUrl }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { canvas } = useFabric(canvasRef);
+  const { showToast } = useToast();
   const [batchFiles, setBatchFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -94,7 +96,7 @@ export const Editor: React.FC<EditorProps> = ({ initialImageUrl }) => {
     // 1. Get current text objects (template)
     const objects = canvas.getObjects().filter(obj => obj.type === 'i-text');
     if (objects.length === 0) {
-        alert("请先在画布上添加文字作为模板");
+        showToast("请先在画布上添加文字作为模板", "error");
         return;
     }
 
@@ -108,9 +110,10 @@ export const Editor: React.FC<EditorProps> = ({ initialImageUrl }) => {
         templateObjects: templateJSON
       });
       saveAs(blob, "processed_images.zip");
+      showToast("批量处理成功，已开始下载", "success");
     } catch (error) {
       console.error("Batch processing failed:", error);
-      alert("批量处理失败，请检查图片格式");
+      showToast("批量处理失败，请检查图片格式", "error");
     } finally {
       setIsProcessing(false);
     }
