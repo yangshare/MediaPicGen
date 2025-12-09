@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
@@ -47,19 +47,22 @@ ipcMain.handle('download-batch-images', async (event, { basePath, topic, images 
         try {
           const url = new URL(uploadPath);
           const pathname = url.pathname;
-          fileName = path.basename(pathname);
+          // Get original filename
+          const originalName = path.basename(pathname);
+          // Add sequence prefix (01_, 02_, etc.) to ensure order
+          fileName = `${(i + 1).toString().padStart(2, '0')}_${originalName}`;
         } catch (e) {
           // Fallback if URL parsing fails
-          fileName = `${Date.now()}_${i}.png`;
+          fileName = `${(i + 1).toString().padStart(2, '0')}_${Date.now()}.png`;
         }
       } else {
         // Fallback for data URIs or others
-        fileName = `${Date.now()}_${i}.png`;
+        fileName = `${(i + 1).toString().padStart(2, '0')}_${Date.now()}.png`;
       }
       
       // Ensure we have a valid filename, fallback if empty or invalid
       if (!fileName || fileName === '.' || fileName === '/') {
-          fileName = `${Date.now()}_${i}.png`;
+          fileName = `${(i + 1).toString().padStart(2, '0')}_${Date.now()}.png`;
       }
 
       // Ensure unique filename to prevent overwrites if multiple files have same name
@@ -104,8 +107,12 @@ const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'] || 'http://localh
 ipcMain.handle('open-log-folder', () => {
   const logPath = log.transports.file.getFile().path;
   const logDir = path.dirname(logPath);
-  require('electron').shell.openPath(logDir);
+  shell.openPath(logDir);
   return logDir;
+});
+
+ipcMain.handle('shell:openPath', async (event, path) => {
+  await shell.openPath(path);
 });
 
 function createWindow() {
