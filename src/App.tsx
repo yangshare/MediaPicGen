@@ -12,11 +12,14 @@ function App() {
   const [isInitialSetup, setIsInitialSetup] = useState(false);
 
   useEffect(() => {
-    const settings = SettingsManager.getSettings();
-    if (!settings) {
-      setIsInitialSetup(true);
-      setShowSettings(true);
-    }
+    const checkSettings = async () => {
+      const settings = await SettingsManager.getSettings();
+      if (!settings) {
+        setIsInitialSetup(true);
+        setShowSettings(true);
+      }
+    };
+    checkSettings();
   }, []);
 
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);

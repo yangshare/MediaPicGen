@@ -9,6 +9,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 
 const streamPipeline = promisify(pipeline);
+let store: any;
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -99,6 +100,27 @@ ipcMain.handle('download-batch-images', async (event, { basePath, topic, images 
     console.error('Download error:', error);
     return { success: false, error: error.message };
   }
+});
+
+// Store IPC handlers
+ipcMain.handle('store:get', (_event, key) => {
+  return store.get(key);
+});
+
+ipcMain.handle('store:set', (_event, key, value) => {
+  store.set(key, value);
+});
+
+ipcMain.handle('store:delete', (_event, key) => {
+  store.delete(key);
+});
+
+ipcMain.handle('store:clear', () => {
+  store.clear();
+});
+
+ipcMain.handle('store:has', (_event, key) => {
+  return store.has(key);
 });
 
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
@@ -250,7 +272,11 @@ function setupAutoUpdater() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Dynamic import for electron-store (ESM only)
+  const { default: Store } = await import('electron-store');
+  store = new Store();
+  
   createWindow();
   setupAutoUpdater();
   // 注意：checkForUpdatesAndNotify 已移动到 setupAutoUpdater 内部的异步逻辑中，

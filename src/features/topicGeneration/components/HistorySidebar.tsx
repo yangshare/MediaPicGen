@@ -22,7 +22,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
   const handleDownload = async (e: React.MouseEvent, item: HistoryItem) => {
     e.stopPropagation();
     
-    const settings = SettingsManager.getSettings();
+    const settings = await SettingsManager.getSettings();
     if (!settings || !settings.downloadPath) {
       alert('请先在设置中配置下载路径');
       return;
