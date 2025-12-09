@@ -177,7 +177,7 @@ function setupAutoUpdater() {
       log.info(`Found latest release tag: ${tagName}`);
       
       // 2. 构造指向该 Tag 的 Generic Feed URL
-      const feedUrl = `https://ghfast.top/https://github.com/${repo}/releases/download/${tagName}`;
+      const feedUrl = `https://github.com/${repo}/releases/download/${tagName}`;
       
       log.info(`Setting auto-updater feed to: ${feedUrl}`);
       autoUpdater.setFeedURL({
