@@ -26,6 +26,7 @@
 ## 🛠️ 技术栈
 
 *   **核心框架**：[Electron](https://www.electronjs.org/) + [React](https://react.dev/)
+*   **后端逻辑**：[n8n](https://n8n.io/) (全业务流程编排)
 *   **构建工具**：[Vite](https://vitejs.dev/)
 *   **语言**：TypeScript
 *   **图形处理**：[Fabric.js](http://fabricjs.com/)
@@ -40,6 +41,8 @@
 
 *   Node.js (建议 v16+)
 *   npm 或 yarn
+
+> 注意：n8n 后端服务需要运行在本地，建议使用 Docker 快速部署, 请参考 [n8n 官方文档](https://docs.n8n.io/installation/docker/) 进行部署，不在赘述。
 
 ### 安装依赖
 

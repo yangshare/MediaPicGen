@@ -14,6 +14,7 @@ This is a desktop application developed with Electron, React, and Fabric.js, des
 ## 🛠️ Tech Stack
 
 *   **Core Framework**: [Electron](https://www.electronjs.org/) + [React](https://react.dev/)
+*   **Backend Logic**: [n8n](https://n8n.io/) (Workflow Orchestration)
 *   **Build Tool**: [Vite](https://vitejs.dev/)
 *   **Language**: TypeScript
 *   **Graphics Processing**: [Fabric.js](http://fabricjs.com/)
