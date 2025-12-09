@@ -148,23 +148,56 @@ app.on('activate', () => {
 function setupAutoUpdater() {
   log.transports.file.level = 'info';
   autoUpdater.logger = log;
-  
-  // 配置使用 ghproxy 镜像源加速下载
-  // 注意：这里使用 generic provider 配合 GitHub Releases 的 latest/download 链接
   const repo = 'yangshare/MediaPicGen';
-  const feedUrl = `https://mirror.ghproxy.com/https://github.com/${repo}/releases/latest/download`;
   
-  try {
-    log.info(`Setting auto-updater feed to: ${feedUrl}`);
-    autoUpdater.setFeedURL({
-      provider: 'generic',
-      url: feedUrl
-    });
-  } catch (e) {
-    log.error('Failed to set feed URL', e);
-  }
+  // 异步配置更新源
+  (async () => {
+    try {
+      // 1. 获取最新的 Release (包括 Pre-release)
+      // 注意：这里我们通过 ghproxy 访问 GitHub API 以避免 API 也被墙（虽然 API 稍微好点，但为了保险）
+      // GitHub API: https://api.github.com/repos/yangshare/MediaPicGen/releases?per_page=1
+      const apiUrl = `https://ghfast.top/https://api.github.com/repos/${repo}/releases?per_page=1`;
+      
+      log.info(`Fetching latest release info from: ${apiUrl}`);
+      
+      // 使用内建的 net 模块或者 fetch (Electron 29 支持 fetch)
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}`);
+      }
+      
+      const releases = await response.json();
+      if (!Array.isArray(releases) || releases.length === 0) {
+        throw new Error('No releases found');
+      }
+      
+      const latestRelease = releases[0];
+      const tagName = latestRelease.tag_name;
+      
+      log.info(`Found latest release tag: ${tagName}`);
+      
+      // 2. 构造指向该 Tag 的 Generic Feed URL
+      const feedUrl = `https://ghfast.top/https://github.com/${repo}/releases/download/${tagName}`;
+      
+      log.info(`Setting auto-updater feed to: ${feedUrl}`);
+      autoUpdater.setFeedURL({
+        provider: 'generic',
+        url: feedUrl
+      });
+      
+      // 立即检查更新
+      if (app.isPackaged) {
+         autoUpdater.checkForUpdatesAndNotify();
+      }
+      
+    } catch (e) {
+      log.error('Failed to configure mirror feed, falling back to default GitHub provider.', e);
+      // 如果获取失败，回退到默认的 GitHub Provider (读取 package.json 配置)
+      // 这种情况下不做任何 setFeedURL 操作，electron-updater 会自动使用 package.json 里的 repository 信息
+    }
+  })();
 
-  // Allow updating from prerelease (since dev-build.yml publishes prereleases)
+  // Allow updating from prerelease
   autoUpdater.allowPrerelease = true;
   
   autoUpdater.on('checking-for-update', () => {
@@ -181,11 +214,8 @@ function setupAutoUpdater() {
   });
   autoUpdater.on('error', (err) => {
     log.error('Error in auto-updater. ' + err);
-    // 发送详细错误信息给前端，方便调试
-    // 截取一部分错误信息避免太长，但保留关键部分
     const errorMessage = err.message || err.toString();
     win?.webContents.send('update-status', `检查更新失败: ${errorMessage}`);
-    // 同时也发送一个专门的 error 事件，方便前端 console.error
     win?.webContents.send('update-error', errorMessage);
   });
   autoUpdater.on('download-progress', (progressObj) => {
