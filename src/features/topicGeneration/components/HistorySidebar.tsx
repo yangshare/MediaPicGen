@@ -3,6 +3,7 @@ import { HistoryItem } from '../hooks/useTopicHistory';
 import { Clock, Trash2, ChevronRight, Download, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { SettingsManager } from '../../settings/logic/settingsManager';
+import { useToast } from '../../../components/Toast';
 
 interface HistorySidebarProps {
   history: HistoryItem[];
@@ -17,6 +18,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
   onDelete,
   currentId,
 }) => {
+  const { showToast } = useToast();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const handleDownload = async (e: React.MouseEvent, item: HistoryItem) => {
@@ -24,7 +26,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
     
     const settings = await SettingsManager.getSettings();
     if (!settings || !settings.downloadPath) {
-      alert('请先在设置中配置下载路径');
+      showToast('请先在设置中配置下载路径', 'error');
       return;
     }
 
@@ -41,21 +43,16 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
       });
 
       if (result.success) {
-        // Automatically open folder after user confirmation or just open it
-        // User requested "automatic open", so we open it. 
-        // We can ask for confirmation or just do it.
-        // Given the feedback "won't automatically open", we'll open it.
-        // We'll use confirm so they can choose NOT to open if they are spamming downloads.
-        const shouldOpen = confirm(`下载成功！已保存至：${result.path}\n\n是否打开文件夹？`);
-        if (shouldOpen) {
-          await ipcRenderer.invoke('shell:openPath', result.path);
-        }
+        showToast('下载成功', 'success', 5000, {
+          label: '打开文件夹',
+          onClick: () => ipcRenderer.invoke('shell:openPath', result.path)
+        });
       } else {
         throw new Error(result.error);
       }
     } catch (error: any) {
       console.error('Download failed:', error);
-      alert(`下载失败: ${error.message}`);
+      showToast(`下载失败: ${error.message}`, 'error');
     } finally {
       setDownloadingId(null);
     }

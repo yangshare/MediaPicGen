@@ -6,12 +6,14 @@ import { ImageViewer } from './components/ImageViewer';
 import { generateTopicContent, regenerateImage } from './logic/api';
 import { TopicResult } from './types';
 import { useTopicHistory, HistoryItem } from './hooks/useTopicHistory';
+import { useToast } from '../../components/Toast';
 
 interface TopicGeneratorProps {
   onEditImage?: (url: string) => void;
 }
 
 export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage }) => {
+  const { showToast } = useToast();
   const [results, setResults] = useState<TopicResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [regeneratingIds, setRegeneratingIds] = useState<Set<number>>(new Set());
@@ -97,7 +99,7 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage }) =
       
     } catch (err) {
       console.error('Regeneration failed:', err);
-      alert('重新生成失败，请稍后重试');
+      showToast('重新生成失败，请稍后重试', 'error');
     } finally {
       setRegeneratingIds(prev => {
         const next = new Set(prev);
