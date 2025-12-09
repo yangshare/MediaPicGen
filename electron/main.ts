@@ -101,6 +101,13 @@ ipcMain.handle('download-batch-images', async (event, { basePath, topic, images 
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'] || 'http://localhost:5173';
 
+ipcMain.handle('open-log-folder', () => {
+  const logPath = log.transports.file.getFile().path;
+  const logDir = path.dirname(logPath);
+  require('electron').shell.openPath(logDir);
+  return logDir;
+});
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1200,
@@ -141,6 +148,22 @@ app.on('activate', () => {
 function setupAutoUpdater() {
   log.transports.file.level = 'info';
   autoUpdater.logger = log;
+  
+  // 配置使用 ghproxy 镜像源加速下载
+  // 注意：这里使用 generic provider 配合 GitHub Releases 的 latest/download 链接
+  const repo = 'yangshare/MediaPicGen';
+  const feedUrl = `https://mirror.ghproxy.com/https://github.com/${repo}/releases/latest/download`;
+  
+  try {
+    log.info(`Setting auto-updater feed to: ${feedUrl}`);
+    autoUpdater.setFeedURL({
+      provider: 'generic',
+      url: feedUrl
+    });
+  } catch (e) {
+    log.error('Failed to set feed URL', e);
+  }
+
   // Allow updating from prerelease (since dev-build.yml publishes prereleases)
   autoUpdater.allowPrerelease = true;
   
@@ -158,7 +181,12 @@ function setupAutoUpdater() {
   });
   autoUpdater.on('error', (err) => {
     log.error('Error in auto-updater. ' + err);
-    win?.webContents.send('update-status', '检查更新失败');
+    // 发送详细错误信息给前端，方便调试
+    // 截取一部分错误信息避免太长，但保留关键部分
+    const errorMessage = err.message || err.toString();
+    win?.webContents.send('update-status', `检查更新失败: ${errorMessage}`);
+    // 同时也发送一个专门的 error 事件，方便前端 console.error
+    win?.webContents.send('update-error', errorMessage);
   });
   autoUpdater.on('download-progress', (progressObj) => {
     let log_message = "Download speed: " + progressObj.bytesPerSecond;
