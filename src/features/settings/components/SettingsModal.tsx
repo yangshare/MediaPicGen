@@ -28,7 +28,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, i
           setDownloadPath(currentSettings.downloadPath || '');
         } else {
           // Default placeholders or empty
-          setBaseUrl('http://10.2.3.7:5678/webhook');
+          setBaseUrl('https://n8n.yangshare.com/webhook');
           setAuthHeader('Basic YW1iOjZ5SXReaGwqNlR2NUFa');
           setDownloadPath('');
         }

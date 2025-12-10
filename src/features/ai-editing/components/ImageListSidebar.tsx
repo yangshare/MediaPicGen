@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useEditorStore } from '../hooks/useEditorStore';
-import { Plus, X, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Plus, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export const ImageListSidebar: React.FC = () => {

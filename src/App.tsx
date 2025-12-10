@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Editor } from './features/editor/Editor';
 import { TopicGenerator } from './features/topicGeneration/TopicGenerator';
 import { AIEditor } from './features/ai-editing/components/AIEditor';
-import { LayoutGrid, Stamp, Settings, Wand2, Aperture } from 'lucide-react';
+import { LayoutGrid, Stamp, Settings, Wand2 } from 'lucide-react';
 import { SettingsModal } from './features/settings/components/SettingsModal';
 import { SettingsManager } from './features/settings/logic/settingsManager';
 
@@ -64,10 +64,6 @@ function App() {
     }
   }, []);
 
-  const handleEditImage = (imageUrl: string) => {
-    setEditorInitialImage(imageUrl);
-    setCurrentView('editor');
-  };
 
   const handleAIEdit = (imageUrl: string) => {
     setEditorInitialImage(imageUrl);
