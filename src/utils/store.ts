@@ -1,3 +1,5 @@
+import { browserStore } from './browserStore';
+
 export const isElectron = () => {
   return typeof window !== 'undefined' && window.require && window.require('electron');
 };
@@ -14,12 +16,7 @@ export const store = {
         return null;
       }
     } else {
-      const val = localStorage.getItem(key);
-      try {
-        return val ? JSON.parse(val) : null;
-      } catch (e) {
-        return null;
-      }
+      return browserStore.get<T>(key);
     }
   },
   
@@ -33,7 +30,7 @@ export const store = {
         console.error('Failed to set to electron-store:', e);
       }
     } else {
-      localStorage.setItem(key, JSON.stringify(value));
+      await browserStore.set(key, value);
     }
   },
 
@@ -47,7 +44,7 @@ export const store = {
         console.error('Failed to delete from electron-store:', e);
       }
     } else {
-      localStorage.removeItem(key);
+      await browserStore.delete(key);
     }
   },
   
@@ -61,7 +58,7 @@ export const store = {
         console.error('Failed to clear electron-store:', e);
       }
     } else {
-      localStorage.clear();
+      await browserStore.clear();
     }
   }
 };
