@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Editor } from './features/editor/Editor';
 import { TopicGenerator } from './features/topicGeneration/TopicGenerator';
-import { LayoutGrid, PenTool, Settings } from 'lucide-react';
+import { LayoutGrid, Stamp, Settings } from 'lucide-react';
 import { SettingsModal } from './features/settings/components/SettingsModal';
 import { SettingsManager } from './features/settings/logic/settingsManager';
 
@@ -12,14 +12,11 @@ function App() {
   const [isInitialSetup, setIsInitialSetup] = useState(false);
 
   useEffect(() => {
-    const checkSettings = async () => {
-      const settings = await SettingsManager.getSettings();
-      if (!settings) {
-        setIsInitialSetup(true);
-        setShowSettings(true);
-      }
-    };
-    checkSettings();
+    const settings = SettingsManager.getSettings();
+    if (!settings) {
+      setIsInitialSetup(true);
+      setShowSettings(true);
+    }
   }, []);
 
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
@@ -97,8 +94,8 @@ function App() {
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <PenTool size={18} />
-          图片编辑器
+          <Stamp size={18} />
+          批量水印
         </button>
 
         <div className="flex-1" />
