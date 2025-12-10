@@ -4,7 +4,7 @@ import { CanvasWorkspace } from './CanvasWorkspace';
 import { ToolsPanel } from './ToolsPanel';
 import { useEditorStore } from '../hooks/useEditorStore';
 import { ArrowLeft, Download } from 'lucide-react';
-import { saveAs } from 'file-saver';
+
 
 interface EditorLayoutProps {
   onBack: () => void;
