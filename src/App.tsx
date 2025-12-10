@@ -5,6 +5,7 @@ import { AIEditor } from './features/ai-editing/components/AIEditor';
 import { LayoutGrid, Stamp, Settings, Wand2 } from 'lucide-react';
 import { SettingsModal } from './features/settings/components/SettingsModal';
 import { SettingsManager } from './features/settings/logic/settingsManager';
+import logo from './assets/logo.svg';
 
 function App() {
   const [currentView, setCurrentView] = useState<'topic' | 'editor' | 'ai-editing'>('topic');
@@ -75,7 +76,7 @@ function App() {
       {/* Sidebar Navigation */}
       <nav className="w-20 bg-slate-900 flex flex-col items-center py-6 gap-6 z-50">
         <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50 mb-4 cursor-default overflow-hidden" title="MediaPicGen">
-          <img src="/icon.svg" alt="Logo" className="w-full h-full object-cover" />
+          <img src={logo} alt="Logo" className="w-full h-full object-cover" />
         </div>
         
         <button 
