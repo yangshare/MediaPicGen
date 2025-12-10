@@ -55,7 +55,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                 className="flex items-center gap-2 px-6 py-2.5 bg-white/90 hover:bg-white text-slate-800 rounded-full font-medium shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 <Edit size={16} />
-                图片编辑
+                AI编辑
               </button>
               
               <button

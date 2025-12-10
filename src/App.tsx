@@ -1,25 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Editor } from './features/editor/Editor';
 import { TopicGenerator } from './features/topicGeneration/TopicGenerator';
-import { LayoutGrid, PenTool, Settings } from 'lucide-react';
+import { AIEditor } from './features/ai-editing/components/AIEditor';
+import { LayoutGrid, Stamp, Settings, Wand2, Aperture } from 'lucide-react';
 import { SettingsModal } from './features/settings/components/SettingsModal';
 import { SettingsManager } from './features/settings/logic/settingsManager';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'topic' | 'editor'>('topic');
+  const [currentView, setCurrentView] = useState<'topic' | 'editor' | 'ai-editing'>('topic');
   const [editorInitialImage, setEditorInitialImage] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [isInitialSetup, setIsInitialSetup] = useState(false);
 
   useEffect(() => {
-    const checkSettings = async () => {
-      const settings = await SettingsManager.getSettings();
-      if (!settings) {
-        setIsInitialSetup(true);
-        setShowSettings(true);
-      }
-    };
-    checkSettings();
+    const settings = SettingsManager.getSettings();
+    if (!settings) {
+      setIsInitialSetup(true);
+      setShowSettings(true);
+    }
   }, []);
 
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
@@ -71,56 +69,70 @@ function App() {
     setCurrentView('editor');
   };
 
+  const handleAIEdit = (imageUrl: string) => {
+    setEditorInitialImage(imageUrl);
+    setCurrentView('ai-editing');
+  };
+
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-100">
-      {/* Navigation Bar */}
-      <nav className="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-6 z-50 shadow-sm shrink-0">
-        <div className="font-bold text-xl text-slate-800 mr-4">MediaPicGen</div>
+    <div className="flex h-screen bg-slate-50 text-slate-900 font-sans">
+      {/* Sidebar Navigation */}
+      <nav className="w-20 bg-slate-900 flex flex-col items-center py-6 gap-6 z-50">
+        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50 mb-4 cursor-default overflow-hidden" title="MediaPicGen">
+          <img src="/icon.svg" alt="Logo" className="w-full h-full object-cover" />
+        </div>
         
-        <button
+        <button 
           onClick={() => setCurrentView('topic')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            currentView === 'topic' 
-              ? 'bg-blue-50 text-blue-600' 
-              : 'text-slate-600 hover:bg-slate-50'
-          }`}
+          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'topic' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          title="AI内容生成"
         >
-          <LayoutGrid size={18} />
-          AI 内容生成
+          <LayoutGrid size={24} />
+          <span className="text-[10px] font-medium">生成</span>
+        </button>
+        
+        <button 
+          onClick={() => setCurrentView('editor')}
+          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'editor' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          title="批量水印"
+        >
+          <Stamp size={24} />
+          <span className="text-[10px] font-medium">水印</span>
         </button>
 
-        <button
-          onClick={() => setCurrentView('editor')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            currentView === 'editor' 
-              ? 'bg-blue-50 text-blue-600' 
-              : 'text-slate-600 hover:bg-slate-50'
-          }`}
+        <button 
+          onClick={() => setCurrentView('ai-editing')}
+          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'ai-editing' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          title="AI编辑"
         >
-          <PenTool size={18} />
-          图片编辑器
+          <Wand2 size={24} />
+          <span className="text-[10px] font-medium">AI编辑</span>
         </button>
 
         <div className="flex-1" />
-
-        <button
+        
+        <button 
           onClick={() => {
             setIsInitialSetup(false);
             setShowSettings(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+          className="p-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300 flex flex-col items-center gap-1 w-16"
+          title="设置"
         >
-          <Settings size={18} />
-          设置
+          <Settings size={24} />
+          <span className="text-[10px] font-medium">设置</span>
         </button>
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden bg-slate-50">
         {currentView === 'topic' ? (
-          <TopicGenerator onEditImage={handleEditImage} />
+          <TopicGenerator onEditImage={handleAIEdit} />
+        ) : currentView === 'editor' ? (
+          // 水印模块只处理本地上传，不再接收生成的图片
+          <Editor initialImageUrl={null} />
         ) : (
-          <Editor initialImageUrl={editorInitialImage} />
+          <AIEditor initialImageUrl={editorInitialImage} onBack={() => setCurrentView('topic')} onConsumedInitialImage={() => setEditorInitialImage(null)} />
         )}
       </div>
 

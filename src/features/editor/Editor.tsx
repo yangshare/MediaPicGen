@@ -14,7 +14,8 @@ interface EditorProps {
 
 export const Editor: React.FC<EditorProps> = ({ initialImageUrl }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { canvas } = useFabric(canvasRef);
+  // Disable auto-restore if we are loading a specific image
+  const { canvas } = useFabric(canvasRef, { disableAutoRestore: !!initialImageUrl });
   const { showToast } = useToast();
   const [batchFiles, setBatchFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
