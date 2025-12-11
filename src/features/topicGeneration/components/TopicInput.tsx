@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, Search } from 'lucide-react';
+import { useSimulatedProgress } from '../../../hooks/useSimulatedProgress';
+import { CircularProgress } from '../../../components/ui/CircularProgress';
 
 interface TopicInputProps {
   onGenerate: (topic: string) => void;
@@ -8,6 +10,9 @@ interface TopicInputProps {
 
 export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading }) => {
   const [topic, setTopic] = useState('');
+  
+  // 10 minutes = 600 seconds. 1% every 6 seconds.
+  const progress = useSimulatedProgress(isLoading, { stepInterval: 6000 });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,12 +38,18 @@ export const TopicInput: React.FC<TopicInputProps> = ({ onGenerate, isLoading })
         <button
           type="submit"
           disabled={isLoading || !topic.trim()}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2 min-w-[120px] justify-center"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              生成中...
+              <CircularProgress 
+                progress={progress} 
+                size={20} 
+                strokeWidth={3} 
+                trackColor="text-blue-400/30" 
+                indicatorColor="text-white" 
+              />
+              <span>{progress}%</span>
             </>
           ) : (
             '生成内容'

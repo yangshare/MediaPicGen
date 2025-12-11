@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { TopicResult } from '../types';
 import { ImageOff, Edit, RefreshCw } from 'lucide-react';
+import { useSimulatedProgress } from '../../../hooks/useSimulatedProgress';
+import { LinearProgress } from '../../../components/ui/LinearProgress';
 
 interface ResultCardProps {
   result: TopicResult;
@@ -15,9 +17,15 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   onImageClick, 
   onEdit, 
   onRegenerate,
-  isRegenerating 
+  isRegenerating = false
 }) => {
   const [imageError, setImageError] = useState(false);
+  
+  // 2 minutes = 120 seconds. 1% every 1.2 seconds.
+  // User asked for "2 minutes for 100%, step 2s increase 1%". 
+  // We'll prioritize the "step 2s" instruction as it is more specific mechanically.
+  // So stepInterval = 2000ms. Total duration = 200s.
+  const progress = useSimulatedProgress(isRegenerating, { stepInterval: 150 });
 
   return (
     <div className="w-full h-96 bg-white rounded-lg shadow-md overflow-hidden flex flex-col border border-gray-200 hover:shadow-lg transition-shadow duration-300">
@@ -36,9 +44,19 @@ export const ResultCard: React.FC<ResultCardProps> = ({
             
             {/* Loading Overlay - Visible when regenerating */}
             {isRegenerating && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center z-20">
-                <RefreshCw className="w-10 h-10 text-blue-600 animate-spin mb-2" />
-                <span className="text-sm font-medium text-blue-700">正在重新生成...</span>
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-20 px-8">
+                <div className="w-full max-w-[200px] flex flex-col items-center gap-3">
+                  <div className="flex items-center justify-between w-full text-blue-700 font-medium text-sm">
+                    <span>重新生成中...</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <LinearProgress 
+                    progress={progress} 
+                    height={8} 
+                    trackClassName="bg-blue-100" 
+                    indicatorClassName="bg-blue-600" 
+                  />
+                </div>
               </div>
             )}
 
