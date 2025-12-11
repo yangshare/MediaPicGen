@@ -13,7 +13,7 @@ export const generateTopicContent = async (topic: string): Promise<TopicResponse
   const { apiBaseUrl, authHeader } = await getApiConfig();
   
   try {
-    const response = await fetch(`${apiBaseUrl}/78871f55-928a-42e5-bac4-0e58470443ce`, {
+    const response = await fetch(`${apiBaseUrl}/theme/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export const regenerateImage = async (prompt: string): Promise<string> => {
   const { apiBaseUrl, authHeader } = await getApiConfig();
   
   try {
-    const response = await fetch(`${apiBaseUrl}/7858b101-49be-45ef-ab59-d4b35c594b2a`, {
+    const response = await fetch(`${apiBaseUrl}/single/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
