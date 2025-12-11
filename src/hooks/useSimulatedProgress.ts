@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 interface UseSimulatedProgressOptions {
   duration?: number; // Total duration in ms to reach 100%
