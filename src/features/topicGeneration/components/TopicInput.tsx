@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Loader2, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useSimulatedProgress } from '../../../hooks/useSimulatedProgress';
 import { CircularProgress } from '../../../components/ui/CircularProgress';
 
