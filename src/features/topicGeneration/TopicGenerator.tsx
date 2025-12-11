@@ -10,9 +10,10 @@ import { useToast } from '../../components/Toast';
 
 interface TopicGeneratorProps {
   onEditImage?: (url: string) => void;
+  onBusyStateChange?: (isBusy: boolean) => void;
 }
 
-export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage }) => {
+export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage, onBusyStateChange }) => {
   const { showToast } = useToast();
   const [results, setResults] = useState<TopicResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +24,12 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage }) =
   const { history, addToHistory, updateHistoryItem, deleteHistoryItem } = useTopicHistory();
   const [hasInitialized, setHasInitialized] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  // Notify parent component about busy state
+  React.useEffect(() => {
+    const isBusy = isLoading || regeneratingIds.size > 0;
+    onBusyStateChange?.(isBusy);
+  }, [isLoading, regeneratingIds, onBusyStateChange]);
 
   // Auto-select the latest history item on initial load
   React.useEffect(() => {
@@ -117,6 +124,7 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage }) =
         onSelect={handleHistorySelect}
         onDelete={handleHistoryDelete}
         currentId={currentHistoryId}
+        disabled={isLoading || regeneratingIds.size > 0}
       />
 
       {/* Main Content Area */}
@@ -145,6 +153,7 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage }) =
                   onEdit={(res) => onEditImage?.(res.uploadPath)}
                   onRegenerate={(res) => handleRegenerate(res, index)}
                   isRegenerating={regeneratingIds.has(index)}
+                  disabled={isLoading || regeneratingIds.size > 0}
                 />
               ))}
             </div>

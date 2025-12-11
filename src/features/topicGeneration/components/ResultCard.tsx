@@ -10,6 +10,7 @@ interface ResultCardProps {
   onEdit?: (result: TopicResult) => void;
   onRegenerate?: (result: TopicResult) => void;
   isRegenerating?: boolean;
+  disabled?: boolean;
 }
 
 export const ResultCard: React.FC<ResultCardProps> = ({ 
@@ -17,7 +18,8 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   onImageClick, 
   onEdit, 
   onRegenerate,
-  isRegenerating = false
+  isRegenerating = false,
+  disabled = false
 }) => {
   const [imageError, setImageError] = useState(false);
   
@@ -70,7 +72,8 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                   e.stopPropagation();
                   onEdit?.(result);
                 }}
-                className="flex items-center gap-2 px-6 py-2.5 bg-white/90 hover:bg-white text-slate-800 rounded-full font-medium shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-105 active:scale-95"
+                disabled={disabled}
+                className={`flex items-center gap-2 px-6 py-2.5 bg-white/90 hover:bg-white text-slate-800 rounded-full font-medium shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-105 active:scale-95 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Edit size={16} />
                 AI编辑
@@ -81,8 +84,8 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                   e.stopPropagation();
                   onRegenerate?.(result);
                 }}
-                disabled={isRegenerating}
-                className="flex items-center gap-2 px-6 py-2.5 bg-blue-600/90 hover:bg-blue-600 text-white rounded-full font-medium shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                disabled={isRegenerating || disabled}
+                className={`flex items-center gap-2 px-6 py-2.5 bg-blue-600/90 hover:bg-blue-600 text-white rounded-full font-medium shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${disabled ? 'opacity-50' : ''}`}
               >
                 <RefreshCw size={16} className={isRegenerating ? "animate-spin" : ""} />
                 {isRegenerating ? '生成中...' : '重新生成'}

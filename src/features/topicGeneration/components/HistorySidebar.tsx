@@ -10,6 +10,7 @@ interface HistorySidebarProps {
   onSelect: (item: HistoryItem) => void;
   onDelete: (id: string) => void;
   currentId?: string;
+  disabled?: boolean;
 }
 
 export const HistorySidebar: React.FC<HistorySidebarProps> = ({
@@ -17,12 +18,14 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
   onSelect,
   onDelete,
   currentId,
+  disabled = false,
 }) => {
   const { showToast } = useToast();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const handleDownload = async (e: React.MouseEvent, item: HistoryItem) => {
     e.stopPropagation();
+    if (disabled) return;
     
     const settings = await SettingsManager.getSettings();
     if (!settings || !settings.downloadPath) {
@@ -80,12 +83,13 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
             <div
               key={item.id}
               className={clsx(
-                "group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border",
+                "group flex items-center justify-between p-3 rounded-lg transition-all border",
+                disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
                 currentId === item.id
                   ? "bg-blue-50 border-blue-200 shadow-sm"
                   : "bg-white border-transparent hover:bg-slate-50 hover:border-slate-200"
               )}
-              onClick={() => onSelect(item)}
+              onClick={() => !disabled && onSelect(item)}
             >
               <div className="flex-1 min-w-0 pr-2">
                 <div className={clsx(
@@ -99,10 +103,13 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 </div>
               </div>
               
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className={clsx(
+                "flex items-center gap-1 transition-opacity",
+                disabled ? "opacity-0" : "opacity-0 group-hover:opacity-100"
+              )}>
                 <button
                   onClick={(e) => handleDownload(e, item)}
-                  disabled={downloadingId === item.id}
+                  disabled={downloadingId === item.id || disabled}
                   className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                   title="下载图片"
                 >

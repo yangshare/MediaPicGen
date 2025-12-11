@@ -23,6 +23,7 @@ function App() {
 
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     try {
@@ -71,6 +72,11 @@ function App() {
     setCurrentView('ai-editing');
   };
 
+  const handleViewChange = (view: 'topic' | 'editor' | 'ai-editing') => {
+    if (isGenerating) return;
+    setCurrentView(view);
+  };
+
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 font-sans">
       {/* Sidebar Navigation */}
@@ -80,27 +86,30 @@ function App() {
         </div>
         
         <button 
-          onClick={() => setCurrentView('topic')}
-          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'topic' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          onClick={() => handleViewChange('topic')}
+          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'topic' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
           title="AI内容生成"
+          disabled={isGenerating}
         >
           <LayoutGrid size={24} />
           <span className="text-[10px] font-medium">生成</span>
         </button>
         
         <button 
-          onClick={() => setCurrentView('editor')}
-          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'editor' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          onClick={() => handleViewChange('editor')}
+          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'editor' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
           title="批量水印"
+          disabled={isGenerating}
         >
           <Stamp size={24} />
           <span className="text-[10px] font-medium">水印</span>
         </button>
 
         <button 
-          onClick={() => setCurrentView('ai-editing')}
-          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'ai-editing' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          onClick={() => handleViewChange('ai-editing')}
+          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'ai-editing' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
           title="AI编辑"
+          disabled={isGenerating}
         >
           <Wand2 size={24} />
           <span className="text-[10px] font-medium">AI编辑</span>
@@ -110,11 +119,13 @@ function App() {
         
         <button 
           onClick={() => {
+            if (isGenerating) return;
             setIsInitialSetup(false);
             setShowSettings(true);
           }}
-          className="p-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300 flex flex-col items-center gap-1 w-16"
+          className={`p-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300 flex flex-col items-center gap-1 w-16 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
           title="设置"
+          disabled={isGenerating}
         >
           <Settings size={24} />
           <span className="text-[10px] font-medium">设置</span>
@@ -124,7 +135,10 @@ function App() {
       {/* Main Content */}
       <div className="flex-1 overflow-hidden bg-slate-50">
         {currentView === 'topic' ? (
-          <TopicGenerator onEditImage={handleAIEdit} />
+          <TopicGenerator 
+            onEditImage={handleAIEdit} 
+            onBusyStateChange={setIsGenerating}
+          />
         ) : currentView === 'editor' ? (
           // 水印模块只处理本地上传，不再接收生成的图片
           <Editor initialImageUrl={null} />
