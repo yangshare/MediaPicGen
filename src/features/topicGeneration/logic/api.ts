@@ -9,7 +9,7 @@ const getApiConfig = async () => {
   return settings;
 };
 
-export const generateTopicContent = async (topic: string): Promise<TopicResponse> => {
+export const generateTopicContent = async (topic: string, size: string): Promise<TopicResponse> => {
   const { apiBaseUrl, authHeader } = await getApiConfig();
   
   try {
@@ -19,7 +19,7 @@ export const generateTopicContent = async (topic: string): Promise<TopicResponse
         'Content-Type': 'application/json',
         'Authorization': authHeader,
       },
-      body: JSON.stringify({ topic }),
+      body: JSON.stringify({ topic, size }),
     });
 
     if (!response.ok) {
