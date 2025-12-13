@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TopicResult } from '../types';
-import { ImageOff, Edit, RefreshCw } from 'lucide-react';
+import { ImageOff, Edit, RefreshCw, Download } from 'lucide-react';
 import { useSimulatedProgress } from '../../../hooks/useSimulatedProgress';
 import { LinearProgress } from '../../../components/ui/LinearProgress';
 
@@ -28,6 +28,22 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   // We'll prioritize the "step 2s" instruction as it is more specific mechanically.
   // So stepInterval = 2000ms. Total duration = 200s.
   const progress = useSimulatedProgress(isRegenerating, { stepInterval: 150 });
+  const handleDownload = async () => {
+    try {
+      // @ts-ignore
+      if (window.require) {
+        // @ts-ignore
+        const { ipcRenderer } = window.require('electron');
+        const safeName = result.topic.replace(/[^\w\u4e00-\u9fa5]/g, '') + '.png';
+        await ipcRenderer.invoke('save-image', { 
+            url: result.uploadPath,
+            defaultName: safeName
+        });
+      }
+    } catch (e) {
+        console.error('Download failed', e);
+    }
+  };
 
   return (
     <div className="w-full h-96 bg-white rounded-lg shadow-md overflow-hidden flex flex-col border border-gray-200 hover:shadow-lg transition-shadow duration-300">
@@ -67,6 +83,17 @@ export const ResultCard: React.FC<ResultCardProps> = ({
               className={`absolute inset-0 bg-black/40 transition-opacity duration-300 flex flex-col items-center justify-center gap-3 cursor-zoom-in z-10 ${isRegenerating ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}
               onClick={() => onImageClick?.(result.uploadPath)}
             >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload();
+                }}
+                disabled={disabled}
+                className={`flex items-center gap-2 px-6 py-2.5 bg-white/90 hover:bg-white text-slate-800 rounded-full font-medium shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-105 active:scale-95 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <Download size={16} />
+                下载
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();

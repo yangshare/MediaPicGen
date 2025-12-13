@@ -33,7 +33,7 @@ ipcMain.handle('get-app-version', () => {
 ipcMain.handle('download-batch-images', async (event, { basePath, topic, dateStr, images }: { basePath: string, topic: string, dateStr?: string, images: { uploadPath: string, content: string }[] }) => {
   try {
     // Sanitize topic for folder name
-    const safeTopic = topic.replace(/[\\/:*?"<>|]/g, "_");
+    const safeTopic = topic.replace(/[^\w\u4e00-\u9fa5]/g, "");
     // Create path: basePath/dateStr/topic OR basePath/topic
     const targetDir = dateStr 
       ? path.join(basePath, dateStr, safeTopic)
@@ -101,6 +101,51 @@ ipcMain.handle('download-batch-images', async (event, { basePath, topic, dateStr
     return { success: true, path: targetDir };
   } catch (error: any) {
     console.error('Download error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('save-image', async (event, { url, defaultName }: { url: string, defaultName?: string }) => {
+  try {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      defaultPath: defaultName || 'image.png',
+      filters: [
+        { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }
+      ]
+    });
+
+    if (canceled || !filePath) {
+      return { success: false, canceled: true };
+    }
+
+    if (url.startsWith('http')) {
+      const client = url.startsWith('https') ? https : http;
+      await new Promise<void>((resolve, reject) => {
+         client.get(url, (response) => {
+           if (response.statusCode !== 200) {
+             reject(new Error(`Failed to download ${url}: ${response.statusCode}`));
+             return;
+           }
+           const fileStream = fs.createWriteStream(filePath);
+           streamPipeline(response, fileStream)
+             .then(() => resolve())
+             .catch(reject);
+         }).on('error', reject);
+      });
+    } else if (url.startsWith('data:image')) {
+      const base64Data = url.replace(/^data:image\/\w+;base64,/, "");
+      fs.writeFileSync(filePath, base64Data, 'base64');
+    } else {
+        // Assume local path, copy it
+        if (fs.existsSync(url)) {
+            fs.copyFileSync(url, filePath);
+        } else {
+            throw new Error(`Local file not found: ${url}`);
+        }
+    }
+    return { success: true, filePath };
+  } catch (error: any) {
+    console.error('Save image error:', error);
     return { success: false, error: error.message };
   }
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight, Save, Pencil } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Save, Pencil, Download } from 'lucide-react';
 import { TopicResult } from '../types';
 
 interface ImageViewerProps {
@@ -22,6 +22,25 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ results, initialIndex,
     setEditContent(currentItem.content);
     setIsDirty(false);
   }, [currentIndex, currentItem.content]);
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // @ts-ignore
+      if (window.require) {
+        // @ts-ignore
+        const { ipcRenderer } = window.require('electron');
+        // Sanitize filename
+        const safeName = currentItem.topic.replace(/[^\w\u4e00-\u9fa5]/g, '') + '.png';
+        await ipcRenderer.invoke('save-image', { 
+            url: currentItem.uploadPath,
+            defaultName: safeName
+        });
+      }
+    } catch (e) {
+        console.error('Download failed', e);
+    }
+  };
 
   const handleSave = () => {
     onUpdateContent?.(currentIndex, editContent);
@@ -59,15 +78,23 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ results, initialIndex,
   return (
     <div 
       className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
-      onClick={onClose}
     >
-      {/* Close Button */}
-      <button 
-        onClick={onClose}
-        className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 z-20"
-      >
-        <X size={32} />
-      </button>
+      {/* Top Right Actions */}
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+        <button 
+          onClick={handleDownload}
+          className="text-white/70 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+          title="下载图片"
+        >
+          <Download size={32} />
+        </button>
+        <button 
+          onClick={onClose}
+          className="text-white/70 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+        >
+          <X size={32} />
+        </button>
+      </div>
 
       {/* Previous Button */}
       {currentIndex > 0 && (
