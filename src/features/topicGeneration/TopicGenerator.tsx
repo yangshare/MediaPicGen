@@ -39,13 +39,13 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ onEditImage, onB
     }
   }, [history, hasInitialized]);
 
-  const handleGenerate = async (topic: string) => {
+  const handleGenerate = async (topic: string, size: string) => {
     setIsLoading(true);
     setError(null);
     setCurrentHistoryId(undefined); // Reset current history selection for new generation
     
     try {
-      const data = await generateTopicContent(topic);
+      const data = await generateTopicContent(topic, size);
       setResults(data);
       const newHistoryId = addToHistory(topic, data);
       setCurrentHistoryId(newHistoryId);
