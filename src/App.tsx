@@ -105,7 +105,7 @@ function App() {
           disabled={isGenerating}
         >
           <LayoutGrid size={24} />
-          <span className="text-[10px] font-medium">生成</span>
+          <span className="text-[10px] font-medium">主题生成</span>
         </button>
         
         <button 
@@ -115,7 +115,7 @@ function App() {
           disabled={isGenerating}
         >
           <Stamp size={24} />
-          <span className="text-[10px] font-medium">水印</span>
+          <span className="text-[10px] font-medium">批量水印</span>
         </button>
 
         <button 
