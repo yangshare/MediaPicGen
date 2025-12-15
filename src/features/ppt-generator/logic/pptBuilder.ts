@@ -89,7 +89,39 @@ export const generatePptFromTopic = async (
     // 4. Save
     onProgress?.('正在导出文件...');
     const fileName = `${topic.replace(/[\\/:*?"<>|]/g, '_')}_${new Date().getTime()}.pptx`;
-    await pres.writeFile({ fileName });
+    
+    let savedViaElectron = false;
+
+    // Try Electron IPC first (Native Save Dialog)
+    // @ts-ignore
+    if (window.require) {
+      try {
+        // @ts-ignore
+        const { ipcRenderer } = window.require('electron');
+        // pptxgenjs supports base64 output directly
+        const base64 = await pres.write({ outputType: 'base64' }) as string;
+        const result = await ipcRenderer.invoke('save-file', { data: base64, fileName });
+        
+        if (result.success || result.canceled) {
+            savedViaElectron = true;
+        }
+      } catch (e) {
+        console.warn('Electron save failed, falling back to browser download', e);
+      }
+    }
+
+    if (!savedViaElectron) {
+        // Fallback: Use write('blob') and manual download for Browser or if IPC fails
+        const blob = await pres.write({ outputType: 'blob' }) as Blob;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
     
     onProgress?.('完成!');
   } catch (error) {

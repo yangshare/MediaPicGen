@@ -150,6 +150,31 @@ ipcMain.handle('save-image', async (event, { url, defaultName }: { url: string, 
   }
 });
 
+ipcMain.handle('save-file', async (event, { data, fileName }: { data: string, fileName: string }) => {
+  try {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      defaultPath: fileName,
+      filters: [
+        { name: 'PowerPoint', extensions: ['pptx'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    });
+
+    if (canceled || !filePath) {
+      return { success: false, canceled: true };
+    }
+
+    // data is expected to be base64 string
+    const buffer = Buffer.from(data, 'base64');
+    fs.writeFileSync(filePath, buffer);
+    
+    return { success: true, filePath };
+  } catch (error: any) {
+    console.error('Save file error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Store IPC handlers
 ipcMain.handle('store:get', (_event, key) => {
   return store.get(key);
