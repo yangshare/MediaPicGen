@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Editor } from './features/editor/Editor';
 import { TopicGenerator } from './features/topicGeneration/TopicGenerator';
 import { AIEditor } from './features/ai-editing/components/AIEditor';
-import { LayoutGrid, Stamp, Settings, Wand2 } from 'lucide-react';
+import { PptGenerator } from './features/ppt-generator/components/PptGenerator';
+import { LayoutGrid, Stamp, Settings, Wand2, Presentation } from 'lucide-react';
 import { SettingsModal } from './features/settings/components/SettingsModal';
 import { SettingsManager } from './features/settings/logic/settingsManager';
 import logo from './assets/logo.svg';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'topic' | 'editor' | 'ai-editing'>('topic');
+  const [currentView, setCurrentView] = useState<'topic' | 'editor' | 'ai-editing' | 'ppt-generator'>('topic');
   const [editorInitialImage, setEditorInitialImage] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [isInitialSetup, setIsInitialSetup] = useState(false);
@@ -85,7 +86,7 @@ function App() {
     setCurrentView('ai-editing');
   };
 
-  const handleViewChange = (view: 'topic' | 'editor' | 'ai-editing') => {
+  const handleViewChange = (view: 'topic' | 'editor' | 'ai-editing' | 'ppt-generator') => {
     if (isGenerating) return;
     setCurrentView(view);
   };
@@ -128,6 +129,16 @@ function App() {
           <span className="text-[10px] font-medium">AI编辑</span>
         </button>
 
+        <button 
+          onClick={() => handleViewChange('ppt-generator')}
+          className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 w-16 ${currentView === 'ppt-generator' ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+          title="PPT生成"
+          disabled={isGenerating}
+        >
+          <Presentation size={24} />
+          <span className="text-[10px] font-medium">PPT生成</span>
+        </button>
+
         <div className="flex-1" />
         
         <button 
@@ -152,6 +163,8 @@ function App() {
             onEditImage={handleAIEdit} 
             onBusyStateChange={setIsGenerating}
           />
+        ) : currentView === 'ppt-generator' ? (
+          <PptGenerator onBack={() => setCurrentView('topic')} />
         ) : currentView === 'editor' ? (
           // 水印模块只处理本地上传，不再接收生成的图片
           <Editor initialImageUrl={null} />
