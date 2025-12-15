@@ -48,8 +48,21 @@ function App() {
 
       const handleUpdateError = (_: any, errorMsg: string) => {
         console.error('Update Error:', errorMsg);
+        
+        let displayMsg = errorMsg;
+        // 如果包含 HTML 标签（通常是服务器返回的 50x/40x 页面），则简化提示
+        if (errorMsg.includes('<html') || errorMsg.includes('<body')) {
+          if (errorMsg.includes('504')) {
+            displayMsg = '连接服务器超时 (504 Gateway Time-out)';
+          } else if (errorMsg.includes('404')) {
+            displayMsg = '无法找到更新文件 (404 Not Found)';
+          } else {
+            displayMsg = '服务器响应错误，请稍后重试';
+          }
+        }
+        
         // 自动弹窗提示错误，方便用户反馈
-        alert(`更新失败: ${errorMsg}\n\n请检查网络连接或稍后重试。`);
+        alert(`更新失败: ${displayMsg}\n\n请检查网络连接或稍后重试。`);
       };
 
       ipcRenderer.on('update-status', handleUpdateStatus);
