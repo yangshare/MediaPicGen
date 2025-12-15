@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TopicResult } from '../types';
 import { ImageOff, Edit, RefreshCw, Download } from 'lucide-react';
 import { useSimulatedProgress } from '../../../hooks/useSimulatedProgress';
@@ -22,6 +22,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   disabled = false
 }) => {
   const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [result.uploadPath]);
   
   // 2 minutes = 120 seconds. 1% every 1.2 seconds.
   // User asked for "2 minutes for 100%, step 2s increase 1%". 
@@ -120,9 +124,39 @@ export const ResultCard: React.FC<ResultCardProps> = ({
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center text-gray-400 gap-2 p-4 text-center">
-            <ImageOff className="w-12 h-12 opacity-50" />
-            <span className="text-sm">图片加载失败</span>
+          <div className="flex flex-col items-center justify-center text-gray-400 gap-2 p-4 text-center relative w-full h-full">
+            {isRegenerating ? (
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-20 px-8">
+                <div className="w-full max-w-[200px] flex flex-col items-center gap-3">
+                  <div className="flex items-center justify-between w-full text-blue-700 font-medium text-sm">
+                    <span>重新生成中...</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <LinearProgress 
+                    progress={progress} 
+                    height={8} 
+                    trackClassName="bg-blue-100" 
+                    indicatorClassName="bg-blue-600" 
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <ImageOff className="w-12 h-12 opacity-50" />
+                <span className="text-sm">图片加载失败</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRegenerate?.(result);
+                  }}
+                  disabled={disabled}
+                  className={`mt-4 flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-sm font-medium transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <RefreshCw size={14} />
+                  重新生成
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
