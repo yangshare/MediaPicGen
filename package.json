@@ -78,6 +78,7 @@
     "fs-extra": "^11.3.2",
     "graceful-fs": "^4.2.11",
     "jsonfile": "^6.2.0",
+    "pptxgenjs": "^4.0.1",
     "universalify": "^2.0.1"
   }
 }
