@@ -1,5 +1,5 @@
 import PptxGenJS from 'pptxgenjs';
-import { FabricCanvasState, FabricObject } from '../types';
+import { FabricCanvasState } from '../types';
 
 const PPT_WIDTH_INCHES = 10;
 
