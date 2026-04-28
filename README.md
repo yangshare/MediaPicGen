@@ -49,7 +49,7 @@
 ### 安装依赖
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 开发环境运行
@@ -57,7 +57,7 @@ npm install
 同时启动 Vite 开发服务器和 Electron 应用：
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### 打包构建
